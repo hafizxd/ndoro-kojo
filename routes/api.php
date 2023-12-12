@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ReferenceController;
+use App\Http\Controllers\Api\LivestockController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,10 +27,19 @@ Route::middleware('auth:api')->group(function () {
     Route::get('profile', [AuthController::class, 'profile']);
     Route::put('profile', [AuthController::class, 'update']);
 
+    Route::group(["prefix" => '/livestocks'], function () {
+        Route::get('/', [LivestockController::class, 'index']);
+        Route::post('/store', [LivestockController::class, 'store']);
+    });
+
     Route::group(["prefix" => '/references'], function () {
         Route::get('/provinces', [ReferenceController::class, 'provinceList']);
         Route::get('/regencies', [ReferenceController::class, 'regencyList']);
         Route::get('/districts', [ReferenceController::class, 'districtList']);
         Route::get('/villages', [ReferenceController::class, 'villageList']);
+
+        Route::get('/pakan', [ReferenceController::class, 'pakanList']);
+        Route::get('/limbah', [ReferenceController::class, 'limbahList']);
+        Route::get('/livestock-types', [ReferenceController::class, 'livestockTypeList']);
     }); 
 });

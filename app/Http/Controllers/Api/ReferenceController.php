@@ -8,6 +8,9 @@ use App\Models\Province;
 use App\Models\Regency;
 use App\Models\District;
 use App\Models\Village;
+use App\Models\Pakan;
+use App\Models\Limbah;
+use App\Models\LivestockType;
 
 class ReferenceController extends Controller
 {
@@ -67,6 +70,36 @@ class ReferenceController extends Controller
         }
 
         $res = Village::where('district_id', $request->district_id)->orderBy('name', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $res
+        ]);
+    }
+
+    public function pakanList() {
+        $res = Pakan::orderBy('jenis_pakan', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $res
+        ]);
+    }
+
+    public function limbahList() {
+        $res = Limbah::orderBy('pengolahan_limbah', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $res
+        ]);
+    }
+
+    public function livestockTypeList() {
+        $res = LivestockType::where('level', 1)->orderBy('livestock_type')->with('livestockChildren')->get();
 
         return response()->json([
             'success' => true,
