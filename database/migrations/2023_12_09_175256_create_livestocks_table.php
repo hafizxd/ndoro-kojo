@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('livestocks', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->foreignId('pakan_id')->constrained(table: 'pakan');
+            $table->foreignId('limbah_id')->constrained(table: 'limbah');
+            $table->enum('age', ['ANAK', 'DEWASA']);
+            $table->foreignId('type_id')->constrained( table: 'livestock_types' );
+            $table->enum('acquired_status', ['BELI', 'LAHIR', 'JUAL', 'BANTUAN PEMERINTAH']);
+            $table->string('acquired_year')->nullable();
+            $table->string('acquired_month')->nullable();
+            $table->string('acquired_month_name')->nullable();
+            $table->string('dead_type')->nullable();
+            $table->string('dead_reason')->nullable();
+            $table->string('dead_year')->nullable();
+            $table->string('dead_month')->nullable();
+            $table->string('dead_month_name')->nullable();
+            $table->double('sold_proposed_price')->nullable();
+            $table->double('sold_deal_price')->nullable();
+            $table->string('sold_year')->nullable();
+            $table->string('sold_month')->nullable();
+            $table->string('sold_month_name')->nullable();
+            $table->string('availability')->nullable();
+            $table->enum('sensor_status', ['TERPASANG', 'TIDAK TERPASANG'])->default('TIDAK TERPASANG');
+            $table->string('sensor_latitude')->nullable();
+            $table->string('sensor_longitude')->nullable();
+            $table->string('sensor_batterypercent')->nullable();
+            $table->string('sensor_gps_type')->nullable();
+            $table->string('sensor_report')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('livestocks');
+    }
+};
