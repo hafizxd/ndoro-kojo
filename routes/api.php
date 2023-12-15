@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\LivestockController;
+use App\Http\Controllers\Api\KandangController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,12 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('profile', [AuthController::class, 'profile']);
     Route::put('profile', [AuthController::class, 'update']);
+
+    Route::group(["prefix" => '/kandang'], function () {
+        Route::get('/', [KandangController::class, 'index']);
+        Route::post('/store', [KandangController::class, 'store']);
+    });
+
 
     Route::group(["prefix" => '/livestocks'], function () {
         Route::get('/', [LivestockController::class, 'index']);

@@ -29,6 +29,7 @@ class LivestockController extends Controller
     public function store(Request $request) {
         $validator = Validator::make($request->all(), [
             'kandang.name' => 'required',
+            'kandang.type_id' => 'required|exists:livestock_types,id',
             'kandang.panjang' => 'required',
             'kandang.lebar' => 'required',
             'kandang.province_id' => 'required|exists:provinces,id',
