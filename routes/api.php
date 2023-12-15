@@ -30,6 +30,7 @@ Route::middleware('auth:api')->group(function () {
     Route::group(["prefix" => '/livestocks'], function () {
         Route::get('/', [LivestockController::class, 'index']);
         Route::post('/store', [LivestockController::class, 'store']);
+        Route::post('/birth', [LivestockController::class, 'birthStore']);
     });
 
     Route::group(["prefix" => '/references'], function () {

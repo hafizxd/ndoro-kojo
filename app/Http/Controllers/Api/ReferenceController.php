@@ -11,6 +11,7 @@ use App\Models\Village;
 use App\Models\Pakan;
 use App\Models\Limbah;
 use App\Models\LivestockType;
+use Illuminate\Support\Facades\Storage;
 
 class ReferenceController extends Controller
 {
@@ -100,6 +101,12 @@ class ReferenceController extends Controller
 
     public function livestockTypeList() {
         $res = LivestockType::where('level', 1)->orderBy('livestock_type')->with('livestockChildren')->get();
+
+        foreach ($res as $key => $value) {
+            if (isset($value->image)) {
+                $res[$key]->image = Storage::url($value->image);
+            }
+        }
 
         return response()->json([
             'success' => true,
