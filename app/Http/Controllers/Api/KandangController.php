@@ -19,7 +19,7 @@ class KandangController extends Controller
             ], 422);
         }
 
-        $kandangs = Kandang::where('type_id', $request->type_id)->get();
+        $kandangs = Kandang::where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
 
         return response()->json([
             'success' => true,

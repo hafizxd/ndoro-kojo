@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('seller_id')->constrained( table: 'farmers' );
             $table->foreignId('buyer_id')->nullable()->constrained( table: 'farmers' );
             $table->double('price')->nullable();
-            $table->enum('status', ['BELUM TERJUAL', 'SUDAH TERJUAL']);
+            $table->enum('status', ['BELUM TERJUAL', 'SUDAH TERJUAL'])->default('BELUM TERJUAL');
             $table->datetime('deal_at')->nullable();
             $table->timestamps();
         });

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\LivestockController;
 use App\Http\Controllers\Api\KandangController;
+use App\Http\Controllers\Api\TransactionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +38,14 @@ Route::middleware('auth:api')->group(function () {
     Route::group(["prefix" => '/livestocks'], function () {
         Route::get('/', [LivestockController::class, 'index']);
         Route::post('/store', [LivestockController::class, 'store']);
-        Route::post('/birth', [LivestockController::class, 'birthStore']);
+        Route::post('/births', [LivestockController::class, 'birthStore']);
+        Route::post('/deads', [LivestockController::class, 'deadUpdate']);
+    });
+
+    Route::group(["prefix" => '/transactions'], function () {
+        Route::get('/events', [TransactionController::class, 'indexEvent']);
+        Route::post('/sells', [TransactionController::class, 'sell']);
+        Route::post('/buys', [TransactionController::class, 'buy']);
     });
 
     Route::group(["prefix" => '/references'], function () {
