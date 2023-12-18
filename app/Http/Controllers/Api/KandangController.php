@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Kandang;
+use App\Models\Sensor;
 
 class KandangController extends Controller
 {
@@ -19,7 +20,7 @@ class KandangController extends Controller
             ], 422);
         }
 
-        $kandangs = Kandang::where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
+        $kandangs = Kandang::with('sensor')->where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
 
         return response()->json([
             'success' => true,
@@ -52,8 +53,15 @@ class KandangController extends Controller
 
         $kandangReq = $request->toArray();
         $kandangReq['farmer_id'] = Auth::user()->id;
+        unset($kandangReq['sensor']);
 
         $kandang = Kandang::create($kandangReq);
+
+        $sensorReq = $request->toArray()['sensor'];
+        $sensorReq['kandang_id'] = $kandang->id;
+        $sensor = Sensor::create($sensorReq);
+
+        $kandang = Kandang::with('sensor')->findOrFail($kandang->id);
 
         return response()->json([
             'success' => true,

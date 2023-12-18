@@ -33,12 +33,6 @@ return new class extends Migration
             $table->string('sold_month')->nullable();
             $table->string('sold_month_name')->nullable();
             $table->string('availability')->nullable();
-            $table->enum('sensor_status', ['TERPASANG', 'TIDAK TERPASANG'])->default('TIDAK TERPASANG');
-            $table->string('sensor_latitude')->nullable();
-            $table->string('sensor_longitude')->nullable();
-            $table->string('sensor_batterypercent')->nullable();
-            $table->string('sensor_gps_type')->nullable();
-            $table->string('sensor_report')->nullable();
             $table->timestamps();
         });
     }

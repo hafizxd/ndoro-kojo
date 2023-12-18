@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Kandang;
 use App\Models\Livestock;
+use App\Models\Sensor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -47,11 +48,11 @@ class LivestockController extends Controller
             'kandang.regency_id' => 'required|exists:regencies,id',
             'kandang.district_id' => 'required|exists:districts,id',
             'kandang.village_id' => 'required|exists:villages,id',
+            'kandang.sensor_status' => 'required|in:TERPASANG,TIDAK TERPASANG',
             'livestock.pakan_id' => 'required|exists:pakan,id',
             'livestock.limbah_id' => 'required|exists:limbah,id',
             'livestock.age' => 'required|in:ANAK,DEWASA',
-            'livestock.type_id' => 'required|exists:livestock_types,id',
-            'livestock.sensor_status' => 'required|in:TERPASANG,TIDAK TERPASANG'
+            'livestock.type_id' => 'required|exists:livestock_types,id'
         ]);
 
         if ($validator->fails()) {
@@ -67,6 +68,7 @@ class LivestockController extends Controller
         $reqArr = $request->toArray();
         $kandangReq = $reqArr['kandang'];
         $kandangReq['farmer_id'] = Auth::user()->id;
+        unset($kandangReq['sensor']);
 
         $kandang = Kandang::create($kandangReq);
 
@@ -78,6 +80,12 @@ class LivestockController extends Controller
         $livestockReq['acquired_month'] = date('m');
         $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
         $livestock = Livestock::create($livestockReq);
+
+        $sensorReq = $reqArr['kandang']['sensor'];
+        $sensorReq['kandang_id'] = $kandang->id;
+        $sensor = Sensor::create($sensorReq);
+
+        $kandang = Kandang::with('sensor')->findOrFail($kandang->id);
 
         return response()->json([
             'success' => true,
