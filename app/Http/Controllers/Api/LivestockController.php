@@ -119,7 +119,7 @@ class LivestockController extends Controller
         }
 
         // validate kandang
-        $isKandangExists = Kandang::where('farmer_id', Auth::user()->id)->where('kandang_id', $request->kandang_id)->exists();
+        $isKandangExists = Kandang::where('farmer_id', Auth::user()->id)->where('id', $request->kandang_id)->exists();
         if (!$isKandangExists) {
             return response()->json([
                 'success' => false,
