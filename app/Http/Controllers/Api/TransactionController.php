@@ -115,7 +115,8 @@ class TransactionController extends Controller
             'sold_year' => date('Y'),
             'sold_month' => date('m'),
             'sold_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
-            'acquired_status' => 'JUAL'
+            'acquired_status' => 'JUAL',
+            'availability' => 'TIDAK TERSEDIA'
         ]);
 
         // copy livestock
@@ -130,7 +131,7 @@ class TransactionController extends Controller
             'acquired_month' => date('m'),
             'acquired_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
             'code' => $livestock->code,
-            'sensor_status' => 'TIDAK TERPASANG'
+            'availability' => 'TERSEDIA'
         ]);
 
         return response()->json([

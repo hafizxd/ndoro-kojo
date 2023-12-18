@@ -79,6 +79,7 @@ class LivestockController extends Controller
         $livestockReq['acquired_year'] = date('Y');
         $livestockReq['acquired_month'] = date('m');
         $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+        $livestockReq['availability'] = 'TERSEDIA';
         $livestock = Livestock::create($livestockReq);
 
         $sensorReq = $reqArr['kandang']['sensor'];
@@ -143,6 +144,7 @@ class LivestockController extends Controller
         $livestockReq['acquired_year'] = date('Y');
         $livestockReq['acquired_month'] = date('m');
         $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+        $livestockReq['availability'] = 'TERSEDIA';
         $livestock = Livestock::create($livestockReq);
 
         return response()->json([
@@ -174,6 +176,7 @@ class LivestockController extends Controller
         $livestockReq = $request->toArray();
         unset($livestockReq['livestock_id']);
         $livestockReq['dead_month_name'] = strtoupper(Carbon::createFromFormat('m', $request->dead_month)->locale('id')->isoFormat('MMMM'));
+        $livestockReq['availability'] = 'TIDAK TERSEDIA';
 
         $livestock = Livestock::where('id', $request->id)
             ->whereHas('kandang', function ($query) {
