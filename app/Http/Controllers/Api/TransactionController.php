@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\Livestock;
 use App\Models\LivestockBuy;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
 {
@@ -24,6 +25,10 @@ class TransactionController extends Controller
                 $livestocks[$key]->is_mine = true;
             } else {
                 $livestocks[$key]->is_mine = false;
+            }
+
+            if (isset($livestocks[$key]->livestockType->image)) {
+                $livestocks[$key]->livestockType->image = Storage::url($livestocks[$key]->livestockType->image);
             }
         }
 
