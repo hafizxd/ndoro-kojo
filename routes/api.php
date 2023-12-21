@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\LivestockController;
 use App\Http\Controllers\Api\KandangController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +30,14 @@ Route::middleware('auth:api')->group(function () {
     Route::get('profile', [AuthController::class, 'profile']);
     Route::put('profile', [AuthController::class, 'update']);
 
+    Route::group(["prefix" => '/report'], function () {
+        Route::get('/by-kandang-type', [ReportController::class, 'reportByKandangType']);
+    });
+
     Route::group(["prefix" => '/kandang'], function () {
         Route::get('/', [KandangController::class, 'index']);
         Route::post('/store', [KandangController::class, 'store']);
     });
-
 
     Route::group(["prefix" => '/livestocks'], function () {
         Route::get('/', [LivestockController::class, 'index']);

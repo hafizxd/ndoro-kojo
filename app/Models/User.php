@@ -6,11 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Scan;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -21,9 +19,8 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
-        'email',
-        'password',
-        'role'
+        'username',
+        'password'
     ];
 
     /**
@@ -42,22 +39,6 @@ class User extends Authenticatable implements JWTSubject
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
-    public function scans() 
-    {
-        return $this->hasMany(Scan::class);
-    }
 }

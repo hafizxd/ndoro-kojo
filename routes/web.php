@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthenticatedSessionControler;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -22,15 +24,15 @@ use Illuminate\Support\Facades\Route;
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('web.auth')->group(function () {
-    // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    // Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// Route::get('login', [AuthController::class, 'loginIndex'])->name('loginIndex');
 
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/items/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
-    Route::get('/items/{id}/export', [DashboardController::class, 'export'])->name('dashboard.export');
-    Route::delete('/items/{id}/delete', [DashboardController::class, 'delete'])->name('dashboard.delete');
+Route::middleware('web.guest')->group(function () {
+    Route::get('login', [AuthenticatedSessionControler::class, 'loginIndex'])->name('login');
+    Route::post('login', [AuthenticatedSessionControler::class, 'loginStore']);
 });
 
-require __DIR__.'/auth.php';
+Route::middleware('web.auth')->group(function () {
+    Route::post('logout', [AuthenticatedSessionControler::class, 'destroy'])->name('logout');
+});
+
+// require __DIR__.'/auth.php';

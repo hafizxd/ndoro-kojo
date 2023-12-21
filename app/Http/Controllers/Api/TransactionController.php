@@ -130,7 +130,7 @@ class TransactionController extends Controller
             'acquired_year' => date('Y'),
             'acquired_month' => date('m'),
             'acquired_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
-            'code' => $livestock->code,
+            'code' => $this->generateRandomCode('TRK', 'livestocks', 'code'),
             'availability' => 'TERSEDIA'
         ]);
 
@@ -139,5 +139,15 @@ class TransactionController extends Controller
             'message' => 'Success',
             'payload' => $livestock
         ]); 
+    }
+
+    function generateRandomCode($prefix, $table, $column) {
+        $rand = $prefix . "_" . mt_rand(1000000000, 9999999999);
+    
+        $data = DB::table($table)->select('id')->where($column, $rand)->first();
+        if (isset($data)) 
+            return generateRandomCode($prefix, $table, $column);
+    
+        return $rand;
     }
 }

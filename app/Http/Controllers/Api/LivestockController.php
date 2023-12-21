@@ -20,7 +20,7 @@ class LivestockController extends Controller
                 ->when(isset($request->kandang_type_id), function($query2) use ($request) {
                     $query2->where('type_id', $request->kandang_type_id);
                 });
-        })
+        })       
         ->when(isset($request->kandang_id), function($query) use ($request) {
             $query->where('kandang_id', $request->kandang_id);
         })
@@ -114,7 +114,7 @@ class LivestockController extends Controller
             'pakan_id' => 'required|exists:pakan,id',
             'limbah_id' => 'required|exists:limbah,id',
             'age' => 'required|in:ANAK,DEWASA',
-            'type_id' => 'required|exists:livestock_types,id',
+            'type_id' => 'required|exists:livestock_types,id'
         ]);
 
         if ($validator->fails()) {
@@ -140,7 +140,7 @@ class LivestockController extends Controller
 
         $livestockReq = $request->toArray();
         $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
-        $livestockReq['acquired_status'] = "BELI";
+        $livestockReq['acquired_status'] = "LAHIR";
         $livestockReq['acquired_year'] = date('Y');
         $livestockReq['acquired_month'] = date('m');
         $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));

@@ -69,10 +69,10 @@ return [
             'model' => App\Models\Farmer::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
     ],
 
     /*
@@ -97,6 +97,12 @@ return [
     'passwords' => [
         'farmers' => [
             'provider' => 'farmers',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'users' => [
+            'provider' => 'users',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
