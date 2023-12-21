@@ -31,70 +31,55 @@
     <link href="{{ asset('assets/css/theme.min.css') }}" type="text/css" rel="stylesheet" id="style-default">
     <link href="{{ asset('assets/css/user-rtl.min.css') }}" type="text/css" rel="stylesheet" id="user-style-rtl">
     <link href="{{ asset('assets/css/user.min.css') }}" type="text/css" rel="stylesheet" id="user-style-default">
-    <script>
-      var phoenixIsRTL = window.config.config.phoenixIsRTL;
-      if (phoenixIsRTL) {
-        var linkDefault = document.getElementById('style-default');
-        var userLinkDefault = document.getElementById('user-style-default');
-        linkDefault.setAttribute('disabled', true);
-        userLinkDefault.setAttribute('disabled', true);
-        document.querySelector('html').setAttribute('dir', 'rtl');
-      } else {
-        var linkRTL = document.getElementById('style-rtl');
-        var userLinkRTL = document.getElementById('user-style-rtl');
-        linkRTL.setAttribute('disabled', true);
-        userLinkRTL.setAttribute('disabled', true);
-      }
-    </script>
   </head>
 
 
   <body>
     <main class="main" id="top">
       <div class="container">
-        <div class="row flex-center min-vh-100 py-5">
-          <div class="col-sm-10 col-md-8 col-lg-5 col-xl-5 col-xxl-3"><a class="d-flex flex-center text-decoration-none mb-4" href="../../../index.html">
-            <div class="mb-3 text-start">
-              <label class="form-label" for="email">Email address</label>
-              <div class="form-icon-container">
-                <input class="form-control form-icon-input" id="email" type="email" placeholder="name@example.com" /><span class="fas fa-user text-900 fs--1 form-icon"></span>
-              </div>
-            </div>
-            <div class="mb-3 text-start">
-              <label class="form-label" for="password">Password</label>
-              <div class="form-icon-container">
-                <input class="form-control form-icon-input" id="password" type="password" placeholder="Password" /><span class="fas fa-key text-900 fs--1 form-icon"></span>
-              </div>
-            </div>
-            <button class="btn btn-primary w-100 mb-3">Sign In</button>
-          </div>
-        </div>
-      </div>
-      <script>
-        var navbarTopStyle = window.config.config.phoenixNavbarTopStyle;
-        var navbarTop = document.querySelector('.navbar-top');
-        if (navbarTopStyle === 'darker') {
-          navbarTop.classList.add('navbar-darker');
-        }
+        <form action="{{ route('login.store') }}" method="POST">
+          @csrf 
 
-        var navbarVerticalStyle = window.config.config.phoenixNavbarVerticalStyle;
-        var navbarVertical = document.querySelector('.navbar-vertical');
-        if (navbarVertical && navbarVerticalStyle === 'darker') {
-          navbarVertical.classList.add('navbar-darker');
-        }
-      </script>
+          <div class="row flex-center min-vh-100 py-5">
+            <div class="col-sm-10 col-md-8 col-lg-5 col-xl-5 col-xxl-3"><a class="d-flex flex-center text-decoration-none mb-4" href="../../../index.html">
+                <div class="d-flex align-items-center fw-bolder fs-5 d-inline-block"><img src="{{ asset('assets/img/ndorokojo_logo.png') }}" alt="phoenix" width="100" />
+                </div>
+              </a>
+              <div class="mb-3 text-start">
+                <label class="form-label" for="email">Username</label>
+                <div class="form-icon-container">
+                  <input class="form-control form-icon-input" name="username" type="text" placeholder="Username" /><span class="fas fa-user text-900 fs--1 form-icon"></span>
+                </div>
+                @error('username')
+                  <span class="text-danger">{{ $message }}</span>
+                @enderror
+              </div>
+              <div class="mb-3 text-start">
+                <label class="form-label" for="password">Password</label>
+                <div class="form-icon-container">
+                  <input class="form-control form-icon-input" name="password" type="password" placeholder="Password" /><span class="fas fa-key text-900 fs--1 form-icon"></span>
+                </div>
+                @error('password')
+                  <span class="text-danger">{{ $message }}</span>
+                @enderror
+              </div>
+              <button class="btn btn-primary w-100 mb-3">Sign In</button>
+            </div>
+          </div>
+        </form>
+      </div>
     </main>
     
-    <script src="../../../vendors/popper/popper.min.js"></script>
-    <script src="../../../vendors/bootstrap/bootstrap.min.js"></script>
-    <script src="../../../vendors/anchorjs/anchor.min.js"></script>
-    <script src="../../../vendors/is/is.min.js"></script>
-    <script src="../../../vendors/fontawesome/all.min.js"></script>
-    <script src="../../../vendors/lodash/lodash.min.js"></script>
+    <script src="{{ asset('assets/vendors/popper/popper.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/bootstrap/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/anchorjs/anchor.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/is/is.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/fontawesome/all.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/lodash/lodash.min.js') }}"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
-    <script src="../../../vendors/list.js/list.min.js"></script>
-    <script src="../../../vendors/feather-icons/feather.min.js"></script>
-    <script src="../../../vendors/dayjs/dayjs.min.js"></script>
-    <script src="../../../assets/js/phoenix.js"></script>
+    <script src="{{ asset('assets/vendors/list.js/list.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/feather-icons/feather.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/dayjs/dayjs.min.js') }}"></script>
+    <script src="{{ asset('assets/js/phoenix.js') }}"></script>
   </body>
 </html>

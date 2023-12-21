@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthenticatedSessionControler;
 
 
@@ -16,23 +17,20 @@ use App\Http\Controllers\AuthenticatedSessionControler;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Route::get('login', [AuthController::class, 'loginIndex'])->name('loginIndex');
-
 Route::middleware('web.guest')->group(function () {
     Route::get('login', [AuthenticatedSessionControler::class, 'loginIndex'])->name('login');
-    Route::post('login', [AuthenticatedSessionControler::class, 'loginStore']);
+    Route::post('login', [AuthenticatedSessionControler::class, 'loginStore'])->name('login.store');
 });
 
 Route::middleware('web.auth')->group(function () {
-    Route::post('logout', [AuthenticatedSessionControler::class, 'destroy'])->name('logout');
-});
+    Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
 
-// require __DIR__.'/auth.php';
+    Route::get('/sliders/today', [ArticleController::class, 'indexToday'])->name('slider.today');
+    Route::get('/sliders/finance', [ArticleController::class, 'indexFinance'])->name('slider.finance');
+
+    Route::post('/sliders/store', [ArticleController::class, 'store'])->name('slider.store');
+    Route::post('/sliders/update', [ArticleController::class, 'update'])->name('slider.update');
+    Route::post('/sliders/delete', [ArticleController::class, 'delete'])->name('slider.delete');
+
+    Route::post('logout', [AuthenticatedSessionControler::class, 'logout'])->name('logout');
+});

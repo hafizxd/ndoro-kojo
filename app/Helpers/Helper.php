@@ -13,3 +13,7 @@ function generateRandomCode($prefix, $table, $column) {
 
     return $rand;
 }
+
+function oke() {
+    dd('oke');
+}

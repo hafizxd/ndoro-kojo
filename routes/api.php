@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LivestockController;
 use App\Http\Controllers\Api\KandangController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SliderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,11 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/events', [TransactionController::class, 'indexEvent']);
         Route::post('/sells', [TransactionController::class, 'sell']);
         Route::post('/buys', [TransactionController::class, 'buy']);
+    });
+
+    Route::group(["prefix" => '/sliders'], function () {
+        Route::get('/{type}', [SliderController::class, 'index']);
+        Route::get('/{type}/{id}', [SliderController::class, 'show']);
     });
 
     Route::group(["prefix" => '/references'], function () {

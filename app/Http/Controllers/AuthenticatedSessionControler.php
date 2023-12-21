@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthenticatedSessionControler extends Controller
 {
@@ -19,12 +20,24 @@ class AuthenticatedSessionControler extends Controller
 
         $credentials = $request->only('username', 'password');
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::guard('web')->attempt($credentials)) {
+            $request->session()->regenerate();
+
             return redirect()->route('dashboard');
         }
 
         return redirect()->back()->withErrors([
-            'email' => 'The provided credentials do not match our records.'
+            'username' => 'The provided credentials do not match our records.'
         ]);
+    }
+
+    public function logout(Request $request) {
+        Auth::guard('web')->logout();
+ 
+        $request->session()->invalidate();
+    
+        $request->session()->regenerateToken();
+    
+        return redirect()->route('login');
     }
 }
