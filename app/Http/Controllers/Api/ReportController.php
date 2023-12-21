@@ -22,6 +22,13 @@ class ReportController extends Controller
 
         $kandangs = Kandang::where('farmer_id', Auth::user()->id)->where('type_id', $kandangTypeId)->with('livestocks')->get();
 
+        $grandTotal = 0;
+        $grandBeli = 0;
+        $grandJual = 0;
+        $grandLahir = 0;
+        $grandMati = 0;
+        $grandAvailable = 0;
+
         foreach ($kandangs as $key => $kandang) {
             $total = 0;
             $beli = 0;
@@ -55,12 +62,82 @@ class ReportController extends Controller
                 'mati' => $mati,
                 'available' => $available
             ];
+
+            $grandTotal += $total;
+            $grandBeli += $beli;
+            $grandJual += $jual;
+            $grandLahir += $lahir;
+            $grandMati += $mati;
+            $grandAvailable += $available;
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'payload' => $kandangs
+            'payload' => [
+                'statistic' => [
+                    'total' => $grandTotal,
+                    'beli' => $grandBeli,
+                    'jual' => $grandJual,
+                    'mati' => $grandMati,
+                    'available' => $grandAvailable
+                ],
+                'kandang' => $kandangs
+            ]
+        ]);
+    }
+
+    public function reportByLivestockType(Request $request) {
+        $livestockTypeId = $request->livestock_type_id;
+        if (!isset($livestockTypeId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Livestock Type ID is required',
+                'payload' => []
+            ]); 
+        }
+
+        $livestocks = Livestock::whereHas('kandang', function ($query) {
+                $query->where('farmer_id', Auth::user()->id);
+            })
+            ->where('type_id', $livestockTypeId)
+            ->get();
+
+        $total = 0;
+        $beli = 0;
+        $jual = 0;
+        $lahir = 0;
+        $mati = 0;
+        $available = 0;
+
+        foreach ($livestocks as $key => $livestock) {
+            $total++;
+                
+            if (empty($livestock->dead_month)) {
+                if ($livestock->acquired_status == "BELI") 
+                    $beli++;
+                else if ($livestock->acquired_status == "LAHIR")
+                    $lahir++;
+                
+                if (isset($livestock->proposed_price))
+                    $jual++;
+            } else if (isset($livestock->dead_month)) {
+                $mati++;
+            }
+
+            $available = $total - $jual - $mati;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => [
+                'total' => $total,
+                'beli' => $beli,
+                'jual' => $jual,
+                'mati' => $mati,
+                'available' => $available
+            ]
         ]);
     }
 }
