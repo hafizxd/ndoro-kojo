@@ -46,7 +46,7 @@ class ReportController extends Controller
                     else if ($livestock->acquired_status == "LAHIR")
                         $lahir++;
                     
-                    if (isset($livestock->proposed_price))
+                    if (isset($livestock->sold_proposed_price))
                         $jual++;
                 } else if (isset($livestock->dead_month)) {
                     $mati++;
@@ -119,7 +119,7 @@ class ReportController extends Controller
                 else if ($livestock->acquired_status == "LAHIR")
                     $lahir++;
                 
-                if (isset($livestock->proposed_price))
+                if (isset($livestock->sold_proposed_price))
                     $jual++;
             } else if (isset($livestock->dead_month)) {
                 $mati++;

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KandangController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SliderController;
+use App\Http\Controllers\Api\SearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,10 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('profile', [AuthController::class, 'profile']);
     Route::put('profile', [AuthController::class, 'update']);
+
+    Route::group(["prefix" => '/search'], function () {
+        Route::get('/', [SearchController::class, 'index']);
+    });
 
     Route::group(["prefix" => '/report'], function () {
         Route::get('/by-kandang-type', [ReportController::class, 'reportByKandangType']);

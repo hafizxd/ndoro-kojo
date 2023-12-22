@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\LivestockType;
 use App\Models\Livestock;
 use App\Models\Farmer;
 use App\Models\Sensor;
@@ -26,5 +27,9 @@ class Kandang extends Model
 
     public function livestocks() {
         return $this->hasMany(Livestock::class, 'kandang_id');
+    }
+
+    public function livestockType() {
+        return $this->belongsTo(LivestockType::class, 'type_id');
     }
 }
