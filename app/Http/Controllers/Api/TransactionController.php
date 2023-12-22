@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\Livestock;
 use App\Models\LivestockBuy;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
