@@ -36,6 +36,11 @@
           </li>
         </ul>
       </li>
+
+      {{-- Ternak --}}
+      <li class="nav-item">
+        <a class="nav-link lh-1" href="{{ route('livestock.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Ternak</a>
+      </li>
     </ul>
   </div>
   <ul class="navbar-nav navbar-nav-icons flex-row">

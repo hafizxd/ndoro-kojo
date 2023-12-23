@@ -14,7 +14,11 @@
             <div class="d-flex mb-5" id="scrollspyStats"><span class="fa-stack me-2 ms-n1"><i class="fas fa-circle fa-stack-2x text-primary"></i><i class="fa-inverse fa-stack-1x text-primary-soft fas fa-percentage"></i></span>
               <div class="col">
                 <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">Jumlah Ternak &amp; Transaksi</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
-                {{-- <p class="mb-0">You can easily show your stats content by using these cards.</p> --}}
+              </div>
+            </div>
+            <div class="d-flex mb-5">
+              <div class="justify-content-end">
+                  <a href="{{ route('report.export') }}" target="_blank" class="btn btn-primary" type="button">Download Report</a>
               </div>
             </div>
 

@@ -8,6 +8,10 @@ use App\Models\LivestockType;
 use App\Models\Livestock;
 use App\Models\Farmer;
 use App\Models\Sensor;
+use App\Models\Province;
+use App\Models\Regency;
+use App\Models\District;
+use App\Models\Village;
 
 class Kandang extends Model
 {
@@ -31,5 +35,25 @@ class Kandang extends Model
 
     public function livestockType() {
         return $this->belongsTo(LivestockType::class, 'type_id');
+    }
+
+    public function province() 
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function regency() 
+    {
+        return $this->belongsTo(Regency::class);
+    }
+
+    public function district() 
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function village() 
+    {
+        return $this->belongsTo(Village::class);
     }
 }

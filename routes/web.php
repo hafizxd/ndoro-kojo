@@ -5,6 +5,7 @@ use App\Http\Controllers\FarmerController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ImportDBController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LivestockController;
 use App\Http\Controllers\AuthenticatedSessionControler;
 
 
@@ -50,6 +51,10 @@ Route::middleware('web.auth')->group(function () {
         Route::post('store', [ArticleController::class, 'store'])->name('slider.store');
         Route::post('update', [ArticleController::class, 'update'])->name('slider.update');
         Route::post('delete', [ArticleController::class, 'delete'])->name('slider.delete');
+    });
+
+    Route::group(["prefix" => '/livestocks'], function () {
+        Route::get('/', [LivestockController::class, 'index'])->name('livestock.index');
     });
 
     Route::post('logout', [AuthenticatedSessionControler::class, 'logout'])->name('logout');

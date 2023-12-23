@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Dashboard')
+    @section('title', 'Brebes Today')
 
     @section('content')
         <div class="mb-9" data-bs-spy="scroll" data-bs-target="#widgets-scrollspy">
