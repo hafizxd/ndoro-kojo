@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FarmerController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthenticatedSessionControler;
@@ -17,6 +18,12 @@ use App\Http\Controllers\AuthenticatedSessionControler;
 |
 */
 
+Route::get('excel', [AuthenticatedSessionControler::class, 'excel']);
+Route::get('province', [AuthenticatedSessionControler::class, 'province']);
+Route::get('regency', [AuthenticatedSessionControler::class, 'regency']);
+Route::get('district', [AuthenticatedSessionControler::class, 'district']);
+Route::get('village', [AuthenticatedSessionControler::class, 'village']);
+
 Route::middleware('web.guest')->group(function () {
     Route::get('login', [AuthenticatedSessionControler::class, 'loginIndex'])->name('login');
     Route::post('login', [AuthenticatedSessionControler::class, 'loginStore'])->name('login.store');
@@ -25,12 +32,21 @@ Route::middleware('web.guest')->group(function () {
 Route::middleware('web.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
 
-    Route::get('/sliders/today', [ArticleController::class, 'indexToday'])->name('slider.today');
-    Route::get('/sliders/finance', [ArticleController::class, 'indexFinance'])->name('slider.finance');
+    Route::group(["prefix" => '/farmers'], function () {
+        Route::get('/', [FarmerController::class, 'index'])->name('farmer.index');
+        Route::post('store', [FarmerController::class, 'store'])->name('farmer.store');
+        Route::post('update', [FarmerController::class, 'update'])->name('farmer.update');
+        Route::post('delete', [FarmerController::class, 'delete'])->name('farmer.delete');
+    });
 
-    Route::post('/sliders/store', [ArticleController::class, 'store'])->name('slider.store');
-    Route::post('/sliders/update', [ArticleController::class, 'update'])->name('slider.update');
-    Route::post('/sliders/delete', [ArticleController::class, 'delete'])->name('slider.delete');
+    Route::group(["prefix" => '/sliders'], function () {
+        Route::get('today', [ArticleController::class, 'indexToday'])->name('slider.today');
+        Route::get('finance', [ArticleController::class, 'indexFinance'])->name('slider.finance');
+
+        Route::post('store', [ArticleController::class, 'store'])->name('slider.store');
+        Route::post('update', [ArticleController::class, 'update'])->name('slider.update');
+        Route::post('delete', [ArticleController::class, 'delete'])->name('slider.delete');
+    });
 
     Route::post('logout', [AuthenticatedSessionControler::class, 'logout'])->name('logout');
 });

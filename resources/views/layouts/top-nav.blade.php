@@ -19,18 +19,18 @@
 
       {{-- User --}}
       <li class="nav-item">
-        <a class="nav-link lh-1" href="{{ route('dashboard') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
+        <a class="nav-link lh-1" href="{{ route('farmer.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
       </li>
 
-      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-cube"></span>Sliders</a>
+      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
         <ul class="dropdown-menu navbar-dropdown-caret">
           <li><a class="dropdown-item" href="{{ route('slider.today') }}">
-              <div class="dropdown-item-wrapper"><span class="me-2 uil" data-feather="message-square"></span>Brebes Today
+              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-newspaper"></span>Brebes Today
               </div>
             </a>
           </li>
           <li><a class="dropdown-item" href="{{ route('slider.finance') }}">
-              <div class="dropdown-item-wrapper"><span class="me-2 uil" data-feather="message-square"></span>Finance Digital
+              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-money-bill"></span>Finance Digital
               </div>
             </a>
           </li>
@@ -64,9 +64,9 @@
             </div>
           </div>
           <div>
-            <ul class="nav d-flex flex-column mb-2 pb-1">
+            {{-- <ul class="nav d-flex flex-column mb-2 pb-1">
               <li class="nav-item"><a class="nav-link px-3" href="#!"> <span class="me-2 text-900" data-feather="user"></span><span>Profile</span></a></li>
-            </ul>
+            </ul> --}}
             <div class="px-3 pb-3"> <a class="btn btn-phoenix-secondary d-flex flex-center w-100" href="#!" onclick="document.querySelector('#logoutForm').submit()"> <span class="me-2" data-feather="log-out"> </span>Sign out</a></div>
             <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
               @csrf
