@@ -20,7 +20,7 @@ class KandangController extends Controller
             ], 422);
         }
 
-        $kandangs = Kandang::with('sensor')->where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
+        $kandangs = Kandang::with('sensor')->withCount('livestocks')->where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
 
         return response()->json([
             'success' => true,
@@ -61,7 +61,7 @@ class KandangController extends Controller
         $sensorReq['kandang_id'] = $kandang->id;
         $sensor = Sensor::create($sensorReq);
 
-        $kandang = Kandang::with('sensor')->findOrFail($kandang->id);
+        $kandang = Kandang::with('sensor')->withCount('livestocks')->findOrFail($kandang->id);
 
         return response()->json([
             'success' => true,

@@ -34,6 +34,7 @@ Route::middleware('web.guest')->group(function () {
 
 Route::middleware('web.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/report/export', [DashboardController::class, 'export'])->name('report.export');
 
     Route::group(["prefix" => '/farmers'], function () {
         Route::get('/', [FarmerController::class, 'index'])->name('farmer.index');

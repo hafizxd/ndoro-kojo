@@ -1,16 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Exports;
 
-use Excel;
-use App\Exports\ReportExport;
-use Illuminate\Http\Request;
-use App\Models\LivestockType;
+use Maatwebsite\Excel\Concerns\FromView;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 
-class DashboardController extends Controller
+class ReportExport implements FromView
 {
-    public function dashboard() {
+    public function view(): View
+    {
         // Total ternak
         $arrTotalTernak = DB::table('livestock_types as A')
             ->selectRaw('
@@ -127,10 +126,6 @@ class DashboardController extends Controller
             $countMati += $value->count;
         }
 
-        return view('dashboard.index', compact('arrTotalTernak', 'countTotalTernak', 'arrTotalKandang', 'countTotalKandang', 'arrBeli', 'countBeli', 'arrJual', 'countJual', 'arrLahir', 'countLahir', 'arrMati', 'countMati'));
-    }
-
-    public function export() {
-        return Excel::download(new ReportExport, 'report_'.time().'.xlsx');
+        return view('exports.report', compact('arrTotalTernak', 'countTotalTernak', 'arrTotalKandang', 'countTotalKandang', 'arrBeli', 'countBeli', 'arrJual', 'countJual', 'arrLahir', 'countLahir', 'arrMati', 'countMati'));
     }
 }

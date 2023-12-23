@@ -38,6 +38,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::group(["prefix" => '/report'], function () {
         Route::get('/by-kandang-type', [ReportController::class, 'reportByKandangType']);
+        Route::get('/by-kandang-id', [ReportController::class, 'reportByKandangId']);
         Route::get('/by-livestock-type', [ReportController::class, 'reportByLivestockType']);
     });
 

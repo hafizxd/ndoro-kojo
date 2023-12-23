@@ -87,6 +87,62 @@ class ReportController extends Controller
         ]);
     }
 
+    public function reportByKandangId(Request $request) {
+        $kandangId = $request->kandang_id;
+        if (!isset($kandangId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kandang ID is required',
+                'payload' => []
+            ]); 
+        }
+
+        $kandang = Kandang::where('farmer_id', Auth::user()->id)
+            ->with('livestocks')
+            ->withCount('livestocks')
+            ->findOrFail($kandangId);
+
+        
+        $total = 0;
+        $beli = 0;
+        $jual = 0;
+        $lahir = 0;
+        $mati = 0;
+        $available = 0;
+
+        foreach ($kandang->livestocks as $livestock) {
+            $total++;
+            
+            if (empty($livestock->dead_month)) {
+                if ($livestock->acquired_status == "BELI") 
+                    $beli++;
+                else if ($livestock->acquired_status == "LAHIR")
+                    $lahir++;
+                
+                if (isset($livestock->sold_proposed_price))
+                    $jual++;
+            } else if (isset($livestock->dead_month)) {
+                $mati++;
+            }
+        }
+
+        $available = $total - $jual - $mati;
+
+        $kandang->statistic = (object) [
+            'total' => $total,
+            'beli' => $beli,
+            'jual' => $jual,
+            'mati' => $mati,
+            'available' => $available
+        ];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $kandang
+        ]);
+    }
+
     public function reportByLivestockType(Request $request) {
         $livestockTypeId = $request->livestock_type_id;
         if (!isset($livestockTypeId)) {
