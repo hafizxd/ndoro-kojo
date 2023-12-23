@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->double('panjang');
             $table->double('lebar');
-            $table->enum('jenis', ['KANDANG MEDIUM', 'KANDANG BESAR']);
+            $table->double('luas')->nullable();
+            $table->enum('jenis', ['KANDANG KECIL', 'KANDANG MEDIUM', 'KANDANG BESAR']);
             $table->foreignId('province_id')->nullable()->constrained();
             $table->foreignId('regency_id')->nullable()->constrained();
             $table->foreignId('district_id')->nullable()->constrained();

@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('livestocks', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->foreignId('kandang_id')->constrained(table: 'kandang');
-            $table->foreignId('pakan_id')->constrained(table: 'pakan');
-            $table->foreignId('limbah_id')->constrained(table: 'limbah');
-            $table->enum('age', ['ANAK', 'DEWASA']);
-            $table->foreignId('type_id')->constrained( table: 'livestock_types' );
-            $table->enum('acquired_status', ['INPUT', 'BELI', 'LAHIR', 'JUAL', 'BANTUAN PEMERINTAH']);
+            $table->foreignId('pakan_id')->nullable()->constrained(table: 'pakan');
+            $table->foreignId('limbah_id')->nullable()->constrained(table: 'limbah');
+            $table->string('age');
+            $table->string('gender')->nullable();
+            $table->foreignId('type_id')->nullable()->constrained( table: 'livestock_types' );
+            $table->enum('acquired_status', ['INPUT', 'BELI', 'LAHIR', 'JUAL', 'BANTUAN PEMERINTAH'])->nullable()->default('INPUT');
             $table->string('acquired_year')->nullable();
             $table->string('acquired_month')->nullable();
             $table->string('acquired_month_name')->nullable();

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('kandang', function (Blueprint $table) {
-            $table->enum('sensor_status', ['TERPASANG', 'TIDAK TERPASANG'])->default('TIDAK TERPASANG');
+            $table->string('sensor_status')->default('TIDAK TERPASANG SENSOR');
         });
     }
 

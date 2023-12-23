@@ -19,11 +19,11 @@ class FarmersImport implements ToCollection, WithHeadingRow
             
             $iFarmerCode = '';
             $iKandangName = '';
-            $kandangArr = [];
             $now = date('Y-m-d H:i:s');
 
             foreach ($rows as $row) 
             {
+                dd($row);
                 if ($row['farmer_id'] != $iFarmerCode) {
                     $iFarmerCode = $row['farmer_id'];
 
