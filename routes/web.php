@@ -20,6 +20,7 @@ use App\Http\Controllers\AuthenticatedSessionControler;
 */
 
 Route::get('excel', [ImportDBController::class, 'excel']);
+Route::get('excel-query', [ImportDBController::class, 'excelQuery']);
 Route::get('province', [ImportDBController::class, 'province']);
 Route::get('regency', [ImportDBController::class, 'regency']);
 Route::get('district', [ImportDBController::class, 'district']);
