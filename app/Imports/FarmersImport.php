@@ -160,6 +160,10 @@ class FarmersImport implements ToCollection, WithHeadingRow
             // Woopsy
             DB::rollBack();
             dd($e);
+        } catch (\Exception $e) {
+            // Woopsy
+            DB::rollBack();
+            dd($e);
         }
     }
 }

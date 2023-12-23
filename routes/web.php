@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FarmerController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\ImportDBController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthenticatedSessionControler;
 
@@ -18,11 +19,11 @@ use App\Http\Controllers\AuthenticatedSessionControler;
 |
 */
 
-Route::get('excel', [AuthenticatedSessionControler::class, 'excel']);
-Route::get('province', [AuthenticatedSessionControler::class, 'province']);
-Route::get('regency', [AuthenticatedSessionControler::class, 'regency']);
-Route::get('district', [AuthenticatedSessionControler::class, 'district']);
-Route::get('village', [AuthenticatedSessionControler::class, 'village']);
+Route::get('excel', [ImportDBController::class, 'excel']);
+Route::get('province', [ImportDBController::class, 'province']);
+Route::get('regency', [ImportDBController::class, 'regency']);
+Route::get('district', [ImportDBController::class, 'district']);
+Route::get('village', [ImportDBController::class, 'village']);
 
 Route::middleware('web.guest')->group(function () {
     Route::get('login', [AuthenticatedSessionControler::class, 'loginIndex'])->name('login');
