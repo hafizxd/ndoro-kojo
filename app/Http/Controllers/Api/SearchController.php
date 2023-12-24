@@ -26,6 +26,7 @@ class SearchController extends Controller
         // EVENT SELL
         $livestocks = Livestock::whereNotNull('sold_proposed_price')
             ->whereNull('sold_deal_price')
+            ->whereNull('dead_year')
             ->orderBy('updated_at', 'desc')
             ->with(['livestockType', 'kandang.farmer'])
             ->where(function ($query) use ($search) {
@@ -75,7 +76,7 @@ class SearchController extends Controller
             })
             ->with('livestockType')
             ->with('livestocks', function ($query) {
-                $query->select('id', 'dead_year', 'acquired_status', 'sold_proposed_price', )
+                $query->select('id', 'dead_year', 'acquired_status', 'sold_proposed_price')
                     ->with('livestockType');
             })
             ->orderBy('type_id')
