@@ -40,7 +40,7 @@ class ReportController extends Controller
             foreach ($kandang->livestocks as $livestock) {
                 $total++;
                 
-                if (empty($livestock->dead_month)) {
+                if (empty($livestock->dead_year)) {
                     if ($livestock->acquired_status == "BELI") 
                         $beli++;
                     else if ($livestock->acquired_status == "LAHIR")
@@ -48,7 +48,7 @@ class ReportController extends Controller
                     
                     if (isset($livestock->sold_proposed_price))
                         $jual++;
-                } else if (isset($livestock->dead_month)) {
+                } else {
                     $mati++;
                 }
             }
@@ -99,7 +99,10 @@ class ReportController extends Controller
 
         $kandang = Kandang::where('farmer_id', Auth::user()->id)
             ->with('livestocks')
-            ->withCount('livestocks')
+            ->withCount(['livestocks' => function ($query) {
+                $query->whereNull('dead_year')
+                    ->whereNull('sold_deal_price');
+            }])
             ->findOrFail($kandangId);
 
         
@@ -113,7 +116,7 @@ class ReportController extends Controller
         foreach ($kandang->livestocks as $livestock) {
             $total++;
             
-            if (empty($livestock->dead_month)) {
+            if (empty($livestock->dead_year)) {
                 if ($livestock->acquired_status == "BELI") 
                     $beli++;
                 else if ($livestock->acquired_status == "LAHIR")
@@ -121,7 +124,7 @@ class ReportController extends Controller
                 
                 if (isset($livestock->sold_proposed_price))
                     $jual++;
-            } else if (isset($livestock->dead_month)) {
+            } else {
                 $mati++;
             }
         }
@@ -169,7 +172,7 @@ class ReportController extends Controller
         foreach ($livestocks as $key => $livestock) {
             $total++;
                 
-            if (empty($livestock->dead_month)) {
+            if (empty($livestock->dead_year)) {
                 if ($livestock->acquired_status == "BELI") 
                     $beli++;
                 else if ($livestock->acquired_status == "LAHIR")
@@ -177,7 +180,7 @@ class ReportController extends Controller
                 
                 if (isset($livestock->sold_proposed_price))
                     $jual++;
-            } else if (isset($livestock->dead_month)) {
+            } else {
                 $mati++;
             }
 

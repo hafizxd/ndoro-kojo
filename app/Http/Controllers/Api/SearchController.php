@@ -75,7 +75,7 @@ class SearchController extends Controller
             })
             ->with('livestockType')
             ->with('livestocks', function ($query) {
-                $query->select('id', 'dead_month', 'acquired_status', 'sold_proposed_price', )
+                $query->select('id', 'dead_year', 'acquired_status', 'sold_proposed_price', )
                     ->with('livestockType');
             })
             ->orderBy('type_id')
@@ -92,7 +92,7 @@ class SearchController extends Controller
             foreach ($kandang->livestocks as $livestock) {
                 $total++;
                 
-                if (empty($livestock->dead_month)) {
+                if (empty($livestock->dead_year)) {
                     if ($livestock->acquired_status == "BELI") 
                         $beli++;
                     else if ($livestock->acquired_status == "LAHIR")
@@ -100,7 +100,7 @@ class SearchController extends Controller
                     
                     if (isset($livestock->sold_proposed_price))
                         $jual++;
-                } else if (isset($livestock->dead_month)) {
+                } else {
                     $mati++;
                 }
             }

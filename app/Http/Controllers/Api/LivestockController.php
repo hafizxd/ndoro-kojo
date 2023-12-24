@@ -27,7 +27,7 @@ class LivestockController extends Controller
         ->when(isset($request->livestock_type_id), function($query) use ($request) {
             $query->where('type_id', $request->livestock_type_id);
         })
-        ->whereNull('dead_type')
+        ->whereNull('dead_year')
         ->orderBy('created_at', 'desc')
         ->get();
 
@@ -182,10 +182,68 @@ class LivestockController extends Controller
             ->whereHas('kandang', function ($query) {
                 $query->where('farmer_id', Auth::user()->id);
             })
-            ->whereNull('dead_type')
+            ->whereNull('dead_year')
             ->firstOrFail();
             
         $livestock->update($livestockReq);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $livestock
+        ]);
+    }
+    
+    public function updateStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:livestocks,id',
+            'status' => 'required|in:BELI,JUAL,LAHIR,MATI',
+            'month' => 'required',
+            'year' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation fails.',
+                'payload' => [
+                    'errors' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $livestock = Livestock::whereHas('kandang', function ($query) {
+            $query->where('farmer_id', Auth::user()->id);
+        })->findOrFail($request->id);
+
+        $updateData = [];
+
+        if ($request->status == 'BELI' || $request->status == 'LAHIR') {
+            $updateData = array_merge($updateData, [
+                'acquired_status' => $request->status,
+                'acquired_year' => $request->year,
+                'acquired_month' => $request->month,
+                'acquired_month_name' => strtoupper(Carbon::createFromFormat('m', $request->month)->locale('id')->isoFormat('MMMM'))
+            ]);
+        } 
+        else if ($request->status == 'MATI') {
+            $updateData = array_merge($updateData, [
+                'dead_year' => $request->year,
+                'dead_month' => $request->month,
+                'dead_month_name' => strtoupper(Carbon::createFromFormat('m', $request->month)->locale('id')->isoFormat('MMMM'))
+            ]);
+        }
+        else if ($request->status == 'JUAL') {
+            $updateData = array_merge($updateData, [
+                'sold_proposed_price' => 1,
+                'sold_deal_price' => 1,
+                'sold_year' => $request->year,
+                'sold_month' => $request->month,
+                'sold_month_name' => strtoupper(Carbon::createFromFormat('m', $request->month)->locale('id')->isoFormat('MMMM'))
+            ]);
+        }
+
+        $livestock->update($updateData);
 
         return response()->json([
             'success' => true,
