@@ -17,6 +17,7 @@ class TransactionController extends Controller
     public function indexEvent() {
         $livestocks = Livestock::whereNotNull('sold_proposed_price')
             ->whereNull('sold_deal_price')
+            ->whereNull('dead_year')
             ->orderBy('updated_at', 'desc')
             ->with(['kandang.farmer', 'livestockType'])
             ->get();
@@ -61,6 +62,7 @@ class TransactionController extends Controller
             })
             ->where('id', $request->id)
             ->whereNull('sold_proposed_price')
+            ->whereNull('dead_year')
             ->firstOrFail();
 
         $livestock->update([
@@ -96,6 +98,7 @@ class TransactionController extends Controller
             })
             ->whereNotNull('sold_proposed_price')
             ->whereNull('sold_deal_price')
+            ->whereNull('dead_year')
             ->with('kandang')
             ->first();
 
