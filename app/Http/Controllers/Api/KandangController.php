@@ -20,7 +20,14 @@ class KandangController extends Controller
             ], 422);
         }
 
-        $kandangs = Kandang::with('sensor')->withCount('livestocks')->where('farmer_id', Auth::user()->id)->where('type_id', $request->type_id)->get();
+        $kandangs = Kandang::with('sensor')
+            ->withCount(['livestocks' => function ($query) {
+                $query->whereNull('dead_year')
+                    ->whereNull('sold_deal_price');
+            }])
+            ->where('farmer_id', Auth::user()->id)
+            ->where('type_id', $request->type_id)
+            ->get();
 
         return response()->json([
             'success' => true,
