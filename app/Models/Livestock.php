@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Kandang;
 use App\Models\Pakan;
 use App\Models\Limbah;
+use App\Models\LivestockBuy;
 use App\Models\LivestockType;
 
 class Livestock extends Model
@@ -29,5 +30,9 @@ class Livestock extends Model
 
     public function limbah() {
         return $this->belongsTo(Limbah::class);
+    }
+
+    public function livestockBuy() {
+        return $this->hasOne(LivestockBuy::class);
     }
 }

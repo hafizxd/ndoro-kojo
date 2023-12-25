@@ -53,10 +53,7 @@ class LivestockController extends Controller
             }])
             ->withCount(['livestocksThroughKandang AS transaksi_jual_beli' => function($query) {
                 $query->has('kandang')
-                    ->where(function($query) {
-                        $query->whereNotNull('sold_deal_price')
-                            ->orWhere('acquired_status', 'BELI');
-                    });
+                    ->has('livestockBuy');
             }])
             ->withCount(['livestocksThroughKandang AS sedang_dijual' => function($query) {
                 $query->has('kandang')
@@ -85,9 +82,9 @@ class LivestockController extends Controller
 
         $livestockType = LivestockType::where('level', 1)->findOrFail($livestockTypeId);
 
-        if ($urlArr == 'transaksi-jual-beli') {
-            return $this->reportDetailTransaksi($urlArr, $livestockType, $request);
-        }
+        // if ($urlType == 'transaksi-jual-beli') {
+        //     return $this->reportDetailTransaksi($urlType, $livestockType, $request);
+        // }
 
         if ($request->ajax()) {
             $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
@@ -95,17 +92,21 @@ class LivestockController extends Controller
                     $query->where('type_id', $livestockType->id);
                 });
 
-            if ($urlArr == 'mati') {
+            if ($urlType == 'mati') {
                 $q->whereNotNull('dead_year');
             } else {
-                $q->whereNull('dead_year');
+                if ($urlType == 'transaksi-jual-beli') {
+                    $q->has('livestockBuy');
+                } else {
+                    $q->whereNull('dead_year');
 
-                if ($urlArr == 'sedang-dijual') {
-                    $q->whereNull('dead_year')
-                        ->whereNull('sold_deal_price')
-                        ->whereNotNull('sold_proposed_price');   
-                } else if ($urlArr == 'lahir') {
-                    $q->where('acquired_status', 'LAHIR');
+                    if ($urlType == 'sedang-dijual') {
+                        $q->whereNull('dead_year')
+                            ->whereNull('sold_deal_price')
+                            ->whereNotNull('sold_proposed_price');   
+                    } else if ($urlType == 'lahir') {
+                        $q->where('acquired_status', 'LAHIR');
+                    }
                 }
             }
 
@@ -128,7 +129,11 @@ class LivestockController extends Controller
                         return $res;
                     })
                     ->addColumn('month', function($row) {
-                        $res = isset($row->dead_year) ? $row->dead_month_name : $row->acquired_month_name;
+                        $res = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
+                        if (isset($res))
+                            $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
+                        else
+                            $res = '';
                         return $res;
                     })
                     ->addColumn('year', function($row) {
@@ -154,47 +159,47 @@ class LivestockController extends Controller
         return view('livestocks.reports.livestock', compact('urlType', 'livestockType'));   
     }
 
-    function reportDetailTransaksi($urlType, $livestockType, $request) {
-        if ($request->ajax()) {
-            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
-                ->with(['livestockBuy' => function ($query) {
-                    $query->with(['seller', 'buyer']);
-                }])
-                ->whereHas('kandang', function ($query) use ($livestockType) {
-                    $query->where('type_id', $livestockType->id);
-                })
-                ->whereNotNull('dead_year');
+    // function reportDetailTransaksi($urlType, $livestockType, $request) {
+    //     if ($request->ajax()) {
+    //         $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
+    //             ->with(['livestockBuy' => function ($query) {
+    //                 $query->with(['seller', 'buyer']);
+    //             }])
+    //             ->whereHas('kandang', function ($query) use ($livestockType) {
+    //                 $query->where('type_id', $livestockType->id);
+    //             })
+    //             ->whereNotNull('dead_year');
 
-            return DataTables::of($q)
-                    ->addIndexColumn()
-                    ->addColumn('seller', function($row) {
-                        return $row->kandang?->farmer?->fullname;
-                    })
-                    ->addColumn('buyer', function($row) {
-                        return $row->kandang?->farmer?->fullname;
-                    })
-                    ->addColumn('kandang', function($row) {
-                        return $row->kandang?->name;
-                    })
-                    ->addColumn('pakan', function($row) {
-                        return $row->pakan?->jenis_pakan;
-                    })
-                    ->addColumn('limbah', function($row) {
-                        return $row->limbah?->pengolahan_limbah;
-                    })
-                    ->addColumn('status', function($row) {
-                        return $row->limbah?->pengolahan_limbah;
-                    })
-                    ->addColumn('district', function($row) {
-                        return $row->kandang?->district?->name;
-                    })
-                    ->addColumn('village', function($row) {
-                        return $row->kandang?->village?->name;
-                    })
-                    // ->rawColumns(['far' 'district', 'village'])
-                    ->make(true);
-        }
+    //         return DataTables::of($q)
+    //                 ->addIndexColumn()
+    //                 ->addColumn('seller', function($row) {
+    //                     return $row->kandang?->farmer?->fullname;
+    //                 })
+    //                 ->addColumn('buyer', function($row) {
+    //                     return $row->kandang?->farmer?->fullname;
+    //                 })
+    //                 ->addColumn('kandang', function($row) {
+    //                     return $row->kandang?->name;
+    //                 })
+    //                 ->addColumn('pakan', function($row) {
+    //                     return $row->pakan?->jenis_pakan;
+    //                 })
+    //                 ->addColumn('limbah', function($row) {
+    //                     return $row->limbah?->pengolahan_limbah;
+    //                 })
+    //                 ->addColumn('status', function($row) {
+    //                     return $row->limbah?->pengolahan_limbah;
+    //                 })
+    //                 ->addColumn('district', function($row) {
+    //                     return $row->kandang?->district?->name;
+    //                 })
+    //                 ->addColumn('village', function($row) {
+    //                     return $row->kandang?->village?->name;
+    //                 })
+    //                 // ->rawColumns(['far' 'district', 'village'])
+    //                 ->make(true);
+    //     }
 
-        return view('livestocks.reports.livestock-transaction', compact('urlType', 'livestockType'));   
-    }
+    //     return view('livestocks.reports.livestock-transaction', compact('urlType', 'livestockType'));   
+    // }
 }
