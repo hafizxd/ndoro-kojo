@@ -23,6 +23,7 @@ use App\Http\Controllers\AuthenticatedSessionControler;
 Route::get('excel', [ImportDBController::class, 'excel']);
 Route::get('excel-query', [ImportDBController::class, 'excelQuery']);
 Route::get('livestock-type', [ImportDBController::class, 'livestockType']);
+Route::get('livestock-code', [ImportDBController::class, 'generateTernakCode']);
 Route::get('province', [ImportDBController::class, 'province']);
 Route::get('regency', [ImportDBController::class, 'regency']);
 Route::get('district', [ImportDBController::class, 'district']);
@@ -54,6 +55,8 @@ Route::middleware('web.auth')->group(function () {
     });
 
     Route::group(["prefix" => '/livestocks'], function () {
+        Route::get('/report', [LivestockController::class, 'report'])->name('livestock.report');
+        Route::get('/report/detail/{urlType}/{livetockTypeId}', [LivestockController::class, 'reportDetail'])->name('livestock.report.detail');
         Route::get('/', [LivestockController::class, 'index'])->name('livestock.index');
     });
 

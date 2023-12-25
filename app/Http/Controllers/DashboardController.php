@@ -56,7 +56,10 @@ class DashboardController extends Controller
             ')
             ->join('kandang as B', 'A.id', '=', 'B.type_id')
             ->join('livestocks as C', 'B.id', '=', 'C.kandang_id')
-            ->join('livestock_buys as D', 'C.id', '=', 'D.livestock_id')
+            ->where(function ($query) {
+                $query->whereNotNull('C.sold_deal_price')
+                    ->orWhere('acquired_status', 'BELI');
+            })
             ->where('level', 1)
             ->groupBy('A.id')
             ->orderBy('livestock_type')
@@ -78,7 +81,7 @@ class DashboardController extends Controller
             ->join('livestocks as C', 'B.id', '=', 'C.kandang_id')
             ->whereNull('C.dead_year')
             ->whereNull('C.sold_deal_price')
-            ->whereNotNull('C.sold_deal_price')
+            ->whereNotNull('C.sold_proposed_price')
             ->where('level', 1)
             ->groupBy('A.id')
             ->orderBy('livestock_type')
@@ -126,6 +129,10 @@ class DashboardController extends Controller
         foreach ($arrMati as $value) {
             $countMati += $value->count;
         }
+
+
+        // serve as table
+        
 
         return view('dashboard.index', compact('arrTotalTernak', 'countTotalTernak', 'arrTotalKandang', 'countTotalKandang', 'arrBeli', 'countBeli', 'arrJual', 'countJual', 'arrLahir', 'countLahir', 'arrMati', 'countMati'));
     }

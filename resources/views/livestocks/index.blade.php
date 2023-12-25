@@ -28,6 +28,7 @@
                                     <th scope="col" width="10%">Status Ternak</th>
                                     <th scope="col" width="10%">Kecamatan</th>
                                     <th scope="col" width="10%">Kelurahan/Desa</th>
+                                    <th scope="col" width="10%">Action</th>
                                 </tr>
                             </thead>
                         </table>
@@ -51,7 +52,8 @@
                         {data: 'ras', name: 'ras'},
                         {data: 'acquired_status', name: 'acquired_status'},
                         {data: 'district', name: 'district'},
-                        {data: 'village', name: 'village'}
+                        {data: 'village', name: 'village'},
+                        {data: 'action', name: 'action', orderable: false, searchable: false},
                     ]
                 });
             });

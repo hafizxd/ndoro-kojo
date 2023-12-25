@@ -17,6 +17,22 @@
         <a class="nav-link lh-1" href="{{ route('dashboard') }}"><span class="uil fs-0 me-2 uil-chart-pie"></span>Dashboard</a>
       </li>
 
+      {{-- Ternak --}}
+      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-cube"></span>Ternak</a>
+        <ul class="dropdown-menu navbar-dropdown-caret">
+          <li><a class="dropdown-item" href="{{ route('livestock.report') }}">
+              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-money-bill"></span>Report
+              </div>
+            </a>
+          </li>
+          <li><a class="dropdown-item" href="{{ route('livestock.index') }}">
+            <div class="dropdown-item-wrapper"><span class="me-2 uil uil-newspaper"></span>All Ternak
+            </div>
+          </a>
+        </li>
+        </ul>
+      </li>
+
       {{-- User --}}
       <li class="nav-item">
         <a class="nav-link lh-1" href="{{ route('farmer.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
@@ -35,11 +51,6 @@
             </a>
           </li>
         </ul>
-      </li>
-
-      {{-- Ternak --}}
-      <li class="nav-item">
-        <a class="nav-link lh-1" href="{{ route('livestock.index') }}"><span class="uil fs-0 me-2 uil-cube"></span>Ternak</a>
       </li>
     </ul>
   </div>
