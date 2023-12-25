@@ -57,7 +57,9 @@ Route::middleware('web.auth')->group(function () {
     Route::group(["prefix" => '/livestocks'], function () {
         Route::get('/report', [LivestockController::class, 'report'])->name('livestock.report');
         Route::get('/report/detail/{urlType}/{livetockTypeId}', [LivestockController::class, 'reportDetail'])->name('livestock.report.detail');
+        Route::get('/report/detail/{urlType}/{livetockTypeId}/export', [LivestockController::class, 'reportDetailExport'])->name('livestock.report.detail.export');
         Route::get('/', [LivestockController::class, 'index'])->name('livestock.index');
+        Route::post('/update', [LivestockController::class, 'updateStatus'])->name('livestock.update-status');
     });
 
     Route::post('logout', [AuthenticatedSessionControler::class, 'logout'])->name('logout');

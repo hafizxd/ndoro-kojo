@@ -18,20 +18,30 @@
                             </div>
                         </div> --}}
 
-                        <table class="table data-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col" width="5%">#</th>
-                                    <th scope="col" width="10%">Peternak</th>
-                                    <th scope="col" width="10%">Kandang</th>
-                                    <th scope="col" width="10%">Ras</th>
-                                    <th scope="col" width="10%">Status Ternak</th>
-                                    <th scope="col" width="10%">Kecamatan</th>
-                                    <th scope="col" width="10%">Kelurahan/Desa</th>
-                                    <th scope="col" width="10%">Action</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive scrollbar">
+                            <table class="table data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" width="5%">#</th>
+                                        <th scope="col" style="min-width: 150px;">Peternak</th>
+                                        <th scope="col" style="min-width: 150px;">Kode Ternak</th>
+                                        <th scope="col" style="min-width: 150px;">Kandang</th>
+                                        <th scope="col" style="min-width: 150px;">Pakan</th>
+                                        <th scope="col" style="min-width: 150px;">Limbah</th>
+                                        <th scope="col" style="min-width: 150px;">Umur</th>
+                                        <th scope="col" style="min-width: 150px;">Jenis Kelamin</th>
+                                        <th scope="col" style="min-width: 150px;">Status Ternak</th>
+                                        <th scope="col" style="min-width: 150px;">Bulan</th>
+                                        <th scope="col" style="min-width: 150px;">Tahun</th>
+                                        <th scope="col" style="min-width: 150px;">Provinsi</th>
+                                        <th scope="col" style="min-width: 150px;">Desa</th>
+                                        <th scope="col" style="min-width: 150px;">Kecamatan</th>
+                                        <th scope="col" style="min-width: 150px;">Kelurahan/Desa</th>
+                                        <th scope="col" style="min-width: 50px;">Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -48,15 +58,58 @@
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                         {data: 'farmer', name: 'farmer'},
+                        {data: 'code', name: 'code'},
                         {data: 'kandang', name: 'kandang'},
-                        {data: 'ras', name: 'ras'},
-                        {data: 'acquired_status', name: 'acquired_status'},
+                        {data: 'pakan', name: 'pakan'},
+                        {data: 'limbah', name: 'limbah'},
+                        {data: 'age', name: 'age'},
+                        {data: 'gender', name: 'gender'},
+                        {data: 'status', name: 'status'},
+                        {data: 'month', name: 'month'},
+                        {data: 'year', name: 'year'},
+                        {data: 'province', name: 'province'},
+                        {data: 'regency', name: 'regency'},
                         {data: 'district', name: 'district'},
                         {data: 'village', name: 'village'},
-                        {data: 'action', name: 'action', orderable: false, searchable: false},
+                        {data: 'action', name: 'action', orderable: false, searchable: false}
                     ]
                 });
             });
+
+
+            function saveData(id) {
+                var formData = new FormData();
+                formData.append('id', id);
+                formData.append('status', $("#status"+id).val());
+
+                createOverlay("Proses...");
+
+                formData.append('_token', '{{ csrf_token() }}');
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('livestock.update-status') }}",
+                    dataType: 'json',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    success: function(data) {
+                        console.log(data);
+                        gOverlay.hide();
+
+                        if (data.success) {
+                            toastr.success(data.message);
+                            $(".data-table").DataTable().ajax.reload();
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    },
+                    error: function(error) {
+                        gOverlay.hide();
+                        toastr.error("Network/server error\r\n" + error);
+                    }
+                });
+            }
        </script>
 
     @endpush
