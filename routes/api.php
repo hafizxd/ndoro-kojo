@@ -75,5 +75,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/pakan', [ReferenceController::class, 'pakanList']);
         Route::get('/limbah', [ReferenceController::class, 'limbahList']);
         Route::get('/livestock-types', [ReferenceController::class, 'livestockTypeList']);
+
+        Route::get('/slider-categories', [ReferenceController::class, 'sliderCategoryList']);
     }); 
 });

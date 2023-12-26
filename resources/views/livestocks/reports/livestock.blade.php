@@ -9,27 +9,27 @@
                 </div>
             </div>
 
-            {{-- <form action="#" class="mt-3">
+            <form action="#" class="my-3">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label class="form-label" for="timepicker2">Select Time Range</label>
-                            <input name="daterange" class="form-control datetimepicker flatpickr-input" id="timepicker2" type="text" placeholder="d-m-y to d-m-y" data-options='{"mode":"range","dateFormat":"d-m-Y","disableMobile":true}' readonly="readonly">
+                            <input name="daterange" class="form-control datetimepicker flatpickr-input" id="timepicker2" type="text" placeholder="d-m-y to d-m-y" readonly="readonly">
                         </div>
                     </div>
-                    <div class="col-md-1 d-flex align-items-end">
+                    <div class="col-md-1 d-flex align-items-end gap-3">
                         <button class="btn btn-secondary" type="button" onClick="clearFilterDate()">Clear</button>
-                        <button class="btn btn-primary" type="button" onClick="filterDate()">Filter</button>
+                        <button class="btn btn-primary" type="submit">Filter</button>
                     </div>
                 </div>
-            </form> --}}
+            </form>
 
             <div class="card shadow-none border border-300 my-5" data-component-card="data-component-card">
                 <div class="card-body p-0">
                     <div class="p-4">
                         <div class="d-flex mb-5">
                             <div class="justify-content-end">
-                                <a target="_blank" href="{{ route('livestock.report.detail.export', [$urlType, $livestockType->id]) }}" class="btn btn-primary" type="button">Download</a>
+                                <a target="_blank" href="{{ route('livestock.report.detail.export', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}" class="btn btn-primary" type="button">Download</a>
                             </div>
                         </div>
 
@@ -76,7 +76,7 @@
                 var table = $('.data-table').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "{{ route('livestock.report.detail', [$urlType, $livestockType->id]) }}",
+                    ajax: "{{ route('livestock.report.detail', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}?daterange={{ isset($startDate) ? $startDate . ' to ' . $endDate : '' }}",
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                         {data: 'farmer', name: 'farmer'},
@@ -94,6 +94,17 @@
                         {data: 'district', name: 'district'},
                         {data: 'village', name: 'village'}
                     ]
+                });
+            });
+
+            $(document).ready(function() {
+                $('#timepicker2').flatpickr({
+                mode: "range",
+                dateFormat: "d/m/Y",
+                disableMobile: true,
+                @if(isset($dateStart) && isset($dateEnd))
+                    defaultDate: ["{{ $dateStart }}", "{{ $dateEnd }}"]
+                @endif
                 });
             });
        </script>

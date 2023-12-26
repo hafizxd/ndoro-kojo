@@ -165,56 +165,55 @@ class LivestockController extends Controller
         if (!in_array($urlType, $urlArr)) 
             abort(404);
 
-        $livestockType = LivestockType::where('level', 1)->findOrFail($livestockTypeId);
+        $livestockType = null;
+        if ($livestockTypeId != 'all')
+            $livestockType = LivestockType::where('level', 1)->findOrFail($livestockTypeId);
 
         $dateStart = null;
         $dateEnd = null;
-
         if (isset($request->daterange)) {
             $dateExp = explode(' to ', $request->daterange);
             $dateStart = $dateExp[0];
             $dateEnd = $dateExp[1];
         }
 
-        // if ($urlType == 'transaksi-jual-beli') {
-        //     return $this->reportDetailTransaksi($urlType, $livestockType, $request);
-        // }
-
         if ($request->ajax()) {
-            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
-                ->whereHas('kandang', function ($query) use ($livestockType) {
+            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah']);
+        
+            if (isset($livestockType)) {
+                $q->whereHas('kandang', function ($query) use ($livestockType) {
                     $query->where('type_id', $livestockType->id);
                 });
+            }
 
             if ($urlType == 'mati') {
                 $q->whereNotNull('dead_year')
                     ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
-                        $query->where('dead_month', '>=', explode('-', $dateStart)[1])
-                            ->where('dead_month', '<=', explode('-', $dateEnd)[1])
-                            ->where('dead_year', '>=', explode('-', $dateStart)[2])
-                            ->where('dead_year', '<=', explode('-', $dateEnd)[2]);
+                        $query->where('dead_month', '>=', explode('/', $dateStart)[1])
+                            ->where('dead_month', '<=', explode('/', $dateEnd)[1])
+                            ->where('dead_year', '>=', explode('/', $dateStart)[2])
+                            ->where('dead_year', '<=', explode('/', $dateEnd)[2]);
                     });
             } else {
                 if ($urlType == 'transaksi-jual-beli') {
                     $q->has('livestockBuy')
                         ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
-                            $query->where('sold_month', '>=', explode('-', $dateStart)[1])
-                                ->where('sold_month', '<=', explode('-', $dateEnd)[1])
-                                ->where('sold_year', '>=', explode('-', $dateStart)[2])
-                                ->where('sold_year', '<=', explode('-', $dateEnd)[2]);
+                            $query->where('sold_month', '>=', explode('/', $dateStart)[1])
+                                ->where('sold_month', '<=', explode('/', $dateEnd)[1])
+                                ->where('sold_year', '>=', explode('/', $dateStart)[2])
+                                ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
                         });
                 } else {
                     $q->whereNull('dead_year')
                         ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
-                            $query->where('acquired_month', '>=', explode('-', $dateStart)[1])
-                                ->where('acquired_month', '<=', explode('-', $dateEnd)[1])
-                                ->where('acquired_year', '>=', explode('-', $dateStart)[2])
-                                ->where('acquired_year', '<=', explode('-', $dateEnd)[2]);
+                            $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
                         });
 
                     if ($urlType == 'sedang-dijual') {
-                        $q->whereNull('dead_year')
-                            ->whereNull('sold_deal_price')
+                        $q->whereNull('sold_deal_price')
                             ->whereNotNull('sold_proposed_price');   
                     } else if ($urlType == 'lahir') {
                         $q->where('acquired_status', 'LAHIR');
@@ -268,7 +267,7 @@ class LivestockController extends Controller
                     ->make(true);
         }
 
-        return view('livestocks.reports.livestock', compact('urlType', 'livestockType'));   
+        return view('livestocks.reports.livestock', compact('urlType', 'livestockType', 'dateStart', 'dateEnd'));   
     }
 
     public function reportDetailExport($urlType, $livestockTypeId) {

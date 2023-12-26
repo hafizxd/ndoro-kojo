@@ -24,6 +24,13 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php 
+                                    $totalTotalTernak = 0;
+                                    $totalTransaksiJualBeli = 0;
+                                    $totalSedangDijual = 0;
+                                    $totalLahir = 0;
+                                    $totalMati = 0;
+                                @endphp
                                 @foreach($livestockTypes as $value)
                                     <tr>
                                         <td>{{ $value->livestock_type }}</td>
@@ -33,7 +40,23 @@
                                         <td><a href="{{ route('livestock.report.detail', ['lahir', $value->id]) }}">{{ $value->lahir }}</a></td>
                                         <td><a href="{{ route('livestock.report.detail', ['mati', $value->id]) }}">{{ $value->mati }}</a></td>
                                     </tr>
+
+                                    @php 
+                                        $totalTotalTernak += $value->total_ternak;
+                                        $totalTransaksiJualBeli += $value->transaksi_jual_beli;
+                                        $totalSedangDijual += $value->sedang_dijual;
+                                        $totalLahir += $value->lahir;
+                                        $totalMati += $value->mati;
+                                    @endphp
                                 @endforeach
+                                <tr>
+                                    <td><b>TOTAL</b></td>
+                                    <td><a href="{{ route('livestock.report.detail', ['total-ternak', 'all']) }}">{{ $totalTotalTernak }}</a></td>
+                                    <td><a href="{{ route('livestock.report.detail', ['transaksi-jual-beli', 'all']) }}">{{ $totalTransaksiJualBeli }}</a></td>
+                                    <td><a href="{{ route('livestock.report.detail', ['sedang-dijual', 'all']) }}">{{ $totalSedangDijual }}</a></td>
+                                    <td><a href="{{ route('livestock.report.detail', ['lahir', 'all']) }}">{{ $totalLahir }}</a></td>
+                                    <td><a href="{{ route('livestock.report.detail', ['mati', 'all']) }}">{{ $totalMati }}</a></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

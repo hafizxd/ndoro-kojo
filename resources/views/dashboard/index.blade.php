@@ -8,6 +8,20 @@
                 <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">Dashboard Ternak &amp; Transaksi</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
               </div>
             </div>
+            <form action="#" class="my-3">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label" for="timepicker2">Select Time Range</label>
+                            <input name="daterange" class="form-control datetimepicker flatpickr-input" id="timepicker2" type="text" placeholder="d-m-y to d-m-y" readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end gap-3">
+                        <button class="btn btn-secondary" type="button" onClick="clearFilterDate()">Clear</button>
+                        <button class="btn btn-primary" type="submit">Filter</button>
+                    </div>
+                </div>
+            </form>
             <div class="d-flex mb-5">
               <div class="justify-content-end">
                   <a href="{{ route('report.export') }}" target="_blank" class="btn btn-primary" type="button">Download Report</a>
@@ -15,7 +29,7 @@
             </div>
 
             <div class="row g-3 mb-5">
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                   <div class="card h-100 border border-primary">
                     <div class="card-body">
                       <div class="">
@@ -40,7 +54,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                     <div class="card h-100 border border-success">
                       <div class="card-body">
                         <div class="">
@@ -65,7 +79,7 @@
                     </div>
                   </div>
 
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                     <div class="card h-100 border border-info">
                       <div class="card-body">
                         <div class="">
@@ -90,7 +104,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                     <div class="card h-100 border border-warning">
                       <div class="card-body">
                         <div class="">
@@ -115,7 +129,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                     <div class="card h-100 border border-secondary">
                       <div class="card-body">
                         <div class="">
@@ -140,7 +154,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-xxl-4">
+                <div class="col-md-4">
                     <div class="card h-100 border border-danger">
                       <div class="card-body">
                         <div class="">
@@ -167,4 +181,23 @@
             </div>
         </div>
     @endsection
+
+    @push('script')
+        <script>
+          function clearFilterDate() {
+                document.getElementById('timepicker2').flatpickr().clear();
+          }
+
+          $(document).ready(function() {
+            $('#timepicker2').flatpickr({
+              mode: "range",
+              dateFormat: "d/m/Y",
+              disableMobile: true,
+              @if(isset($dateStart) && isset($dateEnd))
+                defaultDate: ["{{ $dateStart }}", "{{ $dateEnd }}"]
+              @endif
+            });
+          });
+        </script>
+    @endpush
 </x-app-layout>

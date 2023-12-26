@@ -11,6 +11,7 @@ use App\Models\Village;
 use App\Models\Pakan;
 use App\Models\Limbah;
 use App\Models\LivestockType;
+use App\Models\ArticleCategory;
 use Illuminate\Support\Facades\Storage;
 
 class ReferenceController extends Controller
@@ -107,6 +108,16 @@ class ReferenceController extends Controller
                 $res[$key]->image = Storage::url($value->image);
             }
         }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $res
+        ]);
+    }
+
+    public function sliderCategoryList() {
+        $res = ArticleCategory::orderBy('article_order')->get();
 
         return response()->json([
             'success' => true,

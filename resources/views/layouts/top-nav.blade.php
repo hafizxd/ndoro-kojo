@@ -13,19 +13,19 @@
   <div class="collapse navbar-collapse navbar-top-collapse order-1 order-lg-0 justify-content-center" id="navbarTopCollapse">
     <ul class="navbar-nav navbar-nav-top" data-dropdown-on-hover="data-dropdown-on-hover">
       {{-- Dashboard --}}
-      <li class="nav-item active">
-        <a class="nav-link lh-1" href="{{ route('dashboard') }}"><span class="uil fs-0 me-2 uil-chart-pie"></span>Dashboard</a>
+      <li class="nav-item">
+        <a class="nav-link lh-1 @if(Request::routeIs('dashboard')) bg-primary-100 text-primary @endif" href="{{ route('dashboard') }}"><span class="uil fs-0 me-2 uil-chart-pie"></span>Dashboard</a>
       </li>
 
       {{-- Ternak --}}
-      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-cube"></span>Ternak</a>
+      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1 @if(Request::routeIs('livestock.*')) bg-primary-100 text-primary @endif" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-cube"></span>Ternak</a>
         <ul class="dropdown-menu navbar-dropdown-caret">
-          <li><a class="dropdown-item" href="{{ route('livestock.report') }}">
+          <li><a class="dropdown-item @if(Request::routeIs('livestock.report')) bg-primary-100 text-primary @endif" href="{{ route('livestock.report') }}">
               <div class="dropdown-item-wrapper"><span class="me-2 uil uil-money-bill"></span>Report
               </div>
             </a>
           </li>
-          <li><a class="dropdown-item" href="{{ route('livestock.index') }}">
+          <li><a class="dropdown-item @if(Request::routeIs('livestock.index')) bg-primary-100 text-primary @endif" href="{{ route('livestock.index') }}">
             <div class="dropdown-item-wrapper"><span class="me-2 uil uil-newspaper"></span>All Ternak
             </div>
           </a>
@@ -35,17 +35,17 @@
 
       {{-- User --}}
       <li class="nav-item">
-        <a class="nav-link lh-1" href="{{ route('farmer.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
+        <a class="nav-link lh-1 @if(Request::routeIs('farmer.index')) bg-primary-100 text-primary @endif" href="{{ route('farmer.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
       </li>
 
-      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
+      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1 @if(Request::routeIs('slider.*')) bg-primary-100 text-primary @endif" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
         <ul class="dropdown-menu navbar-dropdown-caret">
-          <li><a class="dropdown-item" href="{{ route('slider.today') }}">
+          <li><a class="dropdown-item @if(Request::routeIs('slider.today')) bg-primary-100 text-primary @endif" href="{{ route('slider.today') }}">
               <div class="dropdown-item-wrapper"><span class="me-2 uil uil-newspaper"></span>Brebes Today
               </div>
             </a>
           </li>
-          <li><a class="dropdown-item" href="{{ route('slider.finance') }}">
+          <li><a class="dropdown-item @if(Request::routeIs('slider.finance')) bg-primary-100 text-primary @endif" href="{{ route('slider.finance') }}">
               <div class="dropdown-item-wrapper"><span class="me-2 uil uil-money-bill"></span>Finance Digital
               </div>
             </a>
