@@ -27,10 +27,26 @@
                 <td>{{ $value->limbah?->pengolahan_limbah }}</td>
                 <td>{{ $value->age }}</td>
                 <td>{{ $value->gender }}</td>
-                <td>{{ isset($value->dead_year) ? 'MATI' : $value->acquired_status }}</td>
+                <td>
+                    @php
+                        if (isset($value->dead_year))
+                            $res = 'MATI';
+                        else if (isset($value->sold_year))
+                            $res = 'JUAL';
+                        else 
+                            $res = $value->acquired_status;
+                    @endphp     
+                    {{ $res }}
+                </td>
                 <td>
                     @php 
-                        $res = isset($value->dead_year) ? $value->dead_month : $value->acquired_month;
+                        if (isset($value->dead_year))
+                            $res = $value->dead_month;
+                        else if (isset($value->sold_year))
+                            $res = $value->sold_month;
+                        else 
+                            $res = $value->acquired_month;
+                        
                         if (isset($res))
                             $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
                         else
@@ -38,7 +54,17 @@
                     @endphp
                     {{ $res }}
                 </td>
-                <td>{{ isset($value->dead_year) ? $value->dead_year : $value->acquired_year }}</td>
+                <td>
+                    @php 
+                        if (isset($value->dead_year))
+                            $res = $value->dead_year;
+                        else if (isset($value->sold_year))
+                            $res = $value->sold_year;
+                        else 
+                            $res = $value->acquired_year;
+                    @endphp
+                    {{ $res }}
+                </td>
                 <td>{{ $value->kandang?->province?->name }}</td>
                 <td>{{ $value->kandang?->regency?->name }}</td>
                 <td>{{ $value->kandang?->district?->name }}</td>

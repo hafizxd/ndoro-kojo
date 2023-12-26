@@ -157,6 +157,47 @@ class LivestockController extends Controller
             ->orderBy('livestock_type')
             ->get();    
 
+        foreach ($livestockTypes as $key => $value) {
+            $livestockTypeChildren = LivestockType::where('level', 2)
+                ->withCount(['livestocks AS total_ternak' => function($query) use ($value) {
+                        $query->whereHas('kandang', function ($query) use ($value) {
+                            $query->where('type_id', $value->id);
+                        })
+                        ->whereNull('dead_year');
+                }])
+                ->withCount(['livestocks AS transaksi_jual_beli' => function($query) use ($value) {
+                        $query->whereHas('kandang', function ($query) use ($value) {
+                            $query->where('type_id', $value->id);
+                        })
+                        ->has('livestockBuy');
+                }])
+                ->withCount(['livestocks AS sedang_dijual' => function($query) use ($value) {
+                        $query->whereHas('kandang', function ($query) use ($value) {
+                            $query->where('type_id', $value->id);
+                        })
+                        ->whereNull('dead_year')
+                        ->whereNull('sold_deal_price')
+                        ->whereNotNull('sold_proposed_price');
+                }])
+                ->withCount(['livestocks AS lahir' => function($query) use ($value) {
+                        $query->whereHas('kandang', function ($query) use ($value) {
+                            $query->where('type_id', $value->id);
+                        })
+                        ->where('acquired_status', 'LAHIR');
+                }])
+                ->withCount(['livestocks AS mati' => function($query) use ($value) {
+                        $query->whereHas('kandang', function ($query) use ($value) {
+                            $query->where('type_id', $value->id);
+                        })
+                        ->whereNotNull('dead_year');
+                }])
+                ->where('parent_type_id', $value->id)
+                ->orderBy('livestock_type')
+                ->get();       
+
+            $livestockTypes[$key]->children = $livestockTypeChildren;
+        }
+
         return view('livestocks.reports.livestock-type', compact('livestockTypes'));
     }
 
@@ -204,19 +245,41 @@ class LivestockController extends Controller
                                 ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
                         });
                 } else {
-                    $q->whereNull('dead_year')
-                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
-                            $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
-                                ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
-                                ->where('acquired_year', '>=', explode('/', $dateStart)[2])
-                                ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                    $q->whereNull('dead_year');
+
+                    if ($urlType == 'total-ternak') {
+                        $q->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where(function ($query) use ($dateStart, $dateEnd) {
+                                    $query->whereNull('sold_deal_price')
+                                        ->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                        ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                        ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                        ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                                })
+                                ->orWhere(function ($query) use ($dateStart, $dateEnd) {
+                                    $query->where('sold_month', '>=', explode('/', $dateStart)[1])
+                                        ->where('sold_month', '<=', explode('/', $dateEnd)[1])
+                                        ->where('sold_year', '>=', explode('/', $dateStart)[2])
+                                        ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
+                                });
+                        });
+                    } 
+                    else {
+                        $q->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where(function ($query) use ($dateStart, $dateEnd) {
+                                $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                    ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                    ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                    ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                            });
                         });
 
-                    if ($urlType == 'sedang-dijual') {
-                        $q->whereNull('sold_deal_price')
-                            ->whereNotNull('sold_proposed_price');   
-                    } else if ($urlType == 'lahir') {
-                        $q->where('acquired_status', 'LAHIR');
+                        if ($urlType == 'sedang-dijual') {
+                            $q->whereNull('sold_deal_price')
+                                ->whereNotNull('sold_proposed_price');   
+                        } else if ($urlType == 'lahir') {
+                            $q->where('acquired_status', 'LAHIR');
+                        }
                     }
                 }
             }
@@ -236,11 +299,22 @@ class LivestockController extends Controller
                         return $row->limbah?->pengolahan_limbah;
                     })
                     ->addColumn('status', function($row) {
-                        $res = isset($row->dead_year) ? 'MATI' : $row->acquired_status;
+                        if (isset($row->dead_year))
+                            $res = 'MATI';
+                        else if (isset($row->sold_year))
+                            $res = 'JUAL';
+                        else 
+                            $res = $row->acquired_status;
                         return $res;
                     })
                     ->addColumn('month', function($row) {
-                        $res = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
+                        if (isset($row->dead_year))
+                            $res = $row->dead_month;
+                        else if (isset($row->sold_year))
+                            $res = $row->sold_month;
+                        else 
+                            $res = $row->acquired_month;
+
                         if (isset($res))
                             $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
                         else
@@ -248,7 +322,13 @@ class LivestockController extends Controller
                         return $res;
                     })
                     ->addColumn('year', function($row) {
-                        $res = isset($row->dead_year) ? $row->dead_year : $row->acquired_year;
+                        if (isset($row->dead_year))
+                            $res = $row->dead_year;
+                        else if (isset($row->sold_year))
+                            $res = $row->sold_year;
+                        else 
+                            $res = $row->acquired_year;
+
                         return $res;
                     })
                     ->addColumn('province', function($row) {
@@ -270,8 +350,8 @@ class LivestockController extends Controller
         return view('livestocks.reports.livestock', compact('urlType', 'livestockType', 'dateStart', 'dateEnd'));   
     }
 
-    public function reportDetailExport($urlType, $livestockTypeId) {
-        return Excel::download(new LivestockReportExport($urlType, $livestockTypeId), 'livestock_report_'.time().'.xlsx');
+    public function reportDetailExport($urlType, $livestockTypeId, Request $request) {
+        return Excel::download(new LivestockReportExport($urlType, $livestockTypeId, $request), 'livestock_report_'.time().'.xlsx');
     }
 
     // function reportDetailTransaksi($urlType, $livestockType, $request) {

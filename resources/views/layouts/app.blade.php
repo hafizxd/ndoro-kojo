@@ -122,6 +122,8 @@
           }
       });
     </script>
+
+    @stack('style')
   </head>
 
 

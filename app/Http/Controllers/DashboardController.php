@@ -29,6 +29,7 @@ class DashboardController extends Controller
             ->join('kandang as B', 'A.id', '=', 'B.type_id')
             ->join('livestocks as C', 'B.id', '=', 'C.kandang_id')
             ->where('level', 1)
+            ->whereNull('C.dead_year')
             ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
                 $query->where(function ($query) use ($dateStart, $dateEnd) {
                     $query->where(function ($query) use ($dateStart, $dateEnd) {

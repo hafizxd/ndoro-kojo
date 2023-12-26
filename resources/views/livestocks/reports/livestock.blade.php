@@ -5,12 +5,13 @@
         <div class="mb-9" data-bs-spy="scroll" data-bs-target="#widgets-scrollspy">
             <div class="d-flex mb-5" id="scrollspyStats"><span class="fa-stack me-2 ms-n1"><i class="fas fa-circle fa-stack-2x text-primary"></i><i class="fa-inverse fa-stack-1x text-primary-soft fas fa-percentage"></i></span>
                 <div class="col">
-                    <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">{{ ucwords(str_replace('-', ' ', $urlType)) }} {{ ucwords(strtolower($livestockType->livestock_type)) }}</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
+                    <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">{{ ucwords(str_replace('-', ' ', $urlType)) }} {{ isset($livestockType) ? ucwords(strtolower($livestockType->livestock_type)) : '' }}</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
                 </div>
             </div>
 
             <form action="#" class="my-3">
                 <div class="row">
+                    <input type="hidden" name="daterange">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label class="form-label" for="timepicker2">Select Time Range</label>
@@ -29,7 +30,7 @@
                     <div class="p-4">
                         <div class="d-flex mb-5">
                             <div class="justify-content-end">
-                                <a target="_blank" href="{{ route('livestock.report.detail.export', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}" class="btn btn-primary" type="button">Download</a>
+                                <a target="_blank" href="{{ route('livestock.report.detail.export', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}?daterange={{ isset($dateStart) ? ($dateStart . ' to ' . $dateEnd) : '' }}" class="btn btn-primary" type="button">Download</a>
                             </div>
                         </div>
 
@@ -76,7 +77,13 @@
                 var table = $('.data-table').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "{{ route('livestock.report.detail', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}?daterange={{ isset($startDate) ? $startDate . ' to ' . $endDate : '' }}",
+                    ajax: {
+                        url: "{{ route('livestock.report.detail', [$urlType, isset($livestockType) ? $livestockType->id : 'all']) }}",
+                        type: 'GET',
+                        data: {
+                            'daterange': '{{ isset($dateStart) ? ($dateStart . " to " . $dateEnd) : '' }}'
+                        },
+                    },
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                         {data: 'farmer', name: 'farmer'},
