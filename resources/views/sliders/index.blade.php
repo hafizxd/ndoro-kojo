@@ -1,11 +1,11 @@
 <x-app-layout>
-    @section('title', 'Digital Finance')
+    @section('title', 'Brebes Today')
 
     @section('content')
         <div class="mb-9" data-bs-spy="scroll" data-bs-target="#widgets-scrollspy">
             <div class="d-flex mb-5" id="scrollspyStats"><span class="fa-stack me-2 ms-n1"><i class="fas fa-circle fa-stack-2x text-primary"></i><i class="fa-inverse fa-stack-1x text-primary-soft fas fa-percentage"></i></span>
             <div class="col">
-                <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">Digital Finance</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
+                <h3 class="mb-0 text-primary position-relative fw-bold"><span class="bg-soft pe-2">Brebes Today</span><span class="border border-primary-200 position-absolute top-50 translate-middle-y w-100 start-0 z-index--1"></span></h3>
             </div>
             </div>
 
@@ -127,7 +127,7 @@
                 var table = $('.data-table').DataTable({
                     processing: true,
                     serverSide: true,
-                    ajax: "{{ route('slider.finance') }}",
+                    ajax: "{{ route('slider.index', $articleCategory->slug) }}",
                     columns: [
                         {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                         {data: 'thumbnail', name: 'thumbnail'},
@@ -140,7 +140,7 @@
 
             function saveData() {
                 var formData = new FormData();
-                formData.append('type', 'FINANCE');
+                formData.append('type', 'TODAY');
                 formData.append('title', $("#title").val());
                 formData.append('thumbnail', $("#thumbnail")[0].files[0]);
                 formData.append('content', tinymce.get("content").getContent());
@@ -151,7 +151,7 @@
                 formData.append('_token', '{{ csrf_token() }}');
                 $.ajax({
                     type: "POST",
-                    url: "{{ route('slider.store') }}",
+                    url: "{{ route('slider.store', $articleCategory->slug) }}",
                     dataType: 'json',
                     cache: false,
                     contentType: false,
@@ -192,7 +192,7 @@
                     thumbnail = '';
 
                 var formData = new FormData();
-                formData.append('type', 'FINANCE');
+                formData.append('type', 'TODAY');
                 formData.append('id', $("#idEdit").val());
                 formData.append('title', $("#titleEdit").val());
                 formData.append('thumbnail', thumbnail);
@@ -204,7 +204,7 @@
                 formData.append('_token', '{{ csrf_token() }}');
                 $.ajax({
                     type: "POST",
-                    url: "{{ route('slider.update') }}",
+                    url: "{{ route('slider.update', $articleCategory->slug) }}",
                     dataType: 'json',
                     cache: false,
                     contentType: false,
@@ -230,7 +230,7 @@
 
             function deleteData(id) {
                 var formData = new FormData();
-                formData.append('type', 'FINANCE');
+                formData.append('type', 'TODAY');
                 formData.append('id', id);
 
                 createOverlay("Proses...");
@@ -238,7 +238,7 @@
                 formData.append('_token', '{{ csrf_token() }}');
                 $.ajax({
                     type: "POST",
-                    url: "{{ route('slider.delete') }}",
+                    url: "{{ route('slider.delete', $articleCategory->slug) }}",
                     dataType: 'json',
                     cache: false,
                     contentType: false,

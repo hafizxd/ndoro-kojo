@@ -40,16 +40,22 @@
 
       <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1 @if(Request::routeIs('slider.*')) bg-primary-100 text-primary @endif" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
         <ul class="dropdown-menu navbar-dropdown-caret">
-          <li><a class="dropdown-item @if(Request::routeIs('slider.today')) bg-primary-100 text-primary @endif" href="{{ route('slider.today') }}">
-              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-newspaper"></span>Brebes Today
+          <li><a class="dropdown-item @if(Request::routeIs('slider.category.index')) bg-primary-100 text-primary @endif" href="{{ route('slider.category.index') }}">
+              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>Manajemen Slider
               </div>
             </a>
           </li>
-          <li><a class="dropdown-item @if(Request::routeIs('slider.finance')) bg-primary-100 text-primary @endif" href="{{ route('slider.finance') }}">
-              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-money-bill"></span>Finance Digital
-              </div>
-            </a>
-          </li>
+
+          @php
+            $categories = \App\Models\ArticleCategory::all();
+          @endphp
+          @foreach ($categories as $value)
+            <li><a class="dropdown-item @if(Request::is('sliders/'.$value->slug)) bg-primary-100 text-primary @endif" href="{{ route('slider.index', $value->slug) }}">
+                <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>{{ $value->title }}
+                </div>
+              </a>
+            </li>
+          @endforeach
         </ul>
       </li>
     </ul>

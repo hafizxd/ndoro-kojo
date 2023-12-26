@@ -6,6 +6,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ImportDBController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LivestockController;
+use App\Http\Controllers\ArticleCategoryController;
 use App\Http\Controllers\AuthenticatedSessionControler;
 
 
@@ -46,12 +47,21 @@ Route::middleware('web.auth')->group(function () {
     });
 
     Route::group(["prefix" => '/sliders'], function () {
-        Route::get('today', [ArticleController::class, 'indexToday'])->name('slider.today');
-        Route::get('finance', [ArticleController::class, 'indexFinance'])->name('slider.finance');
+        Route::group(['prefix'=> 'categories'], function () {
+            Route::get('/', [ArticleCategoryController::class, 'index'])->name('slider.category.index');
+            Route::post('/store', [ArticleCategoryController::class, 'store'])->name('slider.category.store');
+            Route::post('/{id}/update', [ArticleCategoryController::class, 'update'])->name('slider.category.update');
+            Route::post('/{id}/delete', [ArticleCategoryController::class, 'delete'])->name('slider.category.delete');
+        });
 
-        Route::post('store', [ArticleController::class, 'store'])->name('slider.store');
-        Route::post('update', [ArticleController::class, 'update'])->name('slider.update');
-        Route::post('delete', [ArticleController::class, 'delete'])->name('slider.delete');
+
+        Route::group(['prefix'=> '{slug}'], function () {
+            Route::get('/', [ArticleController::class, 'index'])->name('slider.index');
+
+            Route::post('store', [ArticleController::class, 'store'])->name('slider.store');
+            Route::post('update', [ArticleController::class, 'update'])->name('slider.update');
+            Route::post('delete', [ArticleController::class, 'delete'])->name('slider.delete');
+        });
     });
 
     Route::group(["prefix" => '/livestocks'], function () {
