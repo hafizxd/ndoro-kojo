@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
 {
-    public function indexEvent() {
+    public function indexEvent()
+    {
         $livestocks = Livestock::whereNotNull('sold_proposed_price')
             ->whereNull('sold_deal_price')
             ->whereNull('dead_year')
@@ -22,26 +23,83 @@ class TransactionController extends Controller
             ->with(['kandang.farmer', 'livestockType'])
             ->get();
 
+        $result = [];
+
         foreach ($livestocks as $key => $livestock) {
             if ($livestock->kandang->farmer_id == Auth::user()->id) {
-                $livestocks[$key]->is_mine = true;
+                $livestock->is_mine = true;
             } else {
-                $livestocks[$key]->is_mine = false;
+                $livestock->is_mine = false;
             }
 
-            if (isset($livestocks[$key]->livestockType->image)) {
-                $livestocks[$key]->livestockType->image = Storage::url($livestocks[$key]->livestockType->image);
+            if (isset($livestock->livestockType->image)) {
+                $livestock->livestockType->image = Storage::url($livestock->livestockType->image);
+            }
+
+            if (isset($livestock->sold_image)) {
+                $livestock->sold_image = Storage::url('livestocks/' . $livestock->sold_image);
+            }
+
+            $farmerId = $livestock->kandang->farmer_id;
+            $kandandLivestockTypeId = $livestock->kandang->livestockType->id;
+            $currentResultKey = $farmerId . '_' . $kandandLivestockTypeId;
+
+            if (isset($result[$currentResultKey])) {
+                $result[$currentResultKey]->price_total += $livestock->sold_proposed_price;
+                $result[$currentResultKey]->count_total++;
+
+                $countSubTypeKey = array_search($livestock->livestockType->livestock_type, array_column($result[$currentResultKey]->count_per_subtype, 'livestock_type'));
+                if (isset($countSubTypeKey)) {
+                    $result[$currentResultKey]->count_per_subtype[$countSubTypeKey]['count'] += 1;
+                } else {
+                    $result[$currentResultKey]->count_per_subtype[] = [
+                        'livestock_type' => $livestock->livestockType->livestock_type,
+                        'count' => 1
+                    ];
+                }
+
+                if (isset($livestock->sold_image)) {
+                    $result[$currentResultKey]->livestock_images[] = $livestock->sold_image;
+                }
+
+                $result[$currentResultKey]->items[] = $livestock;
+            } else {
+                $sellGroup = [
+                    'is_mine' => $livestock->is_mine,
+                    'image' => isset($livestock->kandang?->livestockType) ? Storage::url($livestock->kandang?->livestockType->image) : $livestock->kandang?->livestockType->image,
+                    'livestock_type' => $livestock->kandang?->livestockType?->livestock_type,
+                    'price_total' => $livestock->sold_proposed_price,
+                    'count_total' => 1,
+                    'count_per_subtype' => [
+                        [
+                            'livestock_type' => $livestock->livestockType->livestock_type,
+                            'count' => 1
+                        ]
+                    ],
+                    'livestock_images' => [],
+                    'seller' => $livestock->kandang?->farmer,
+                    'items' => [$livestock]
+                ];
+
+                if (isset($livestock->sold_image)) {
+                    $sellGroup['livestock_images'][] = $livestock->sold_image;
+                }
+
+                $result[$currentResultKey] = (object) $sellGroup;
             }
         }
+
+        $result = array_values($result);
 
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'payload' => $livestocks
+            'payload' => $result
         ]);
     }
 
-    public function sell(Request $request) {
+    public function sell(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:livestocks,id',
             'proposed_price' => 'required'
@@ -57,9 +115,9 @@ class TransactionController extends Controller
             ], 422);
         }
 
-        $livestock = Livestock::whereHas('kandang', function($query) {
-                $query->where('farmer_id', Auth::user()->id);
-            })
+        $livestock = Livestock::whereHas('kandang', function ($query) {
+            $query->where('farmer_id', Auth::user()->id);
+        })
             ->where('id', $request->id)
             ->whereNull('sold_proposed_price')
             ->whereNull('dead_year')
@@ -67,20 +125,22 @@ class TransactionController extends Controller
 
         $livestock->update([
             'sold_proposed_price' => $request->proposed_price
-        ]); 
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Success',
             'payload' => $livestock
         ]);
-    }   
+    }
 
-    public function buy(Request $request) {
+    public function buy(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-            'livestock_id' => 'required|exists:livestocks,id',
             'kandang_id' => 'required|exists:kandang,id',
-            'deal_price' => 'required'
+            'deal_price' => 'required',
+            'livestocks' => 'required|array',
+            'livestocks.*.livestock_id' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -93,70 +153,148 @@ class TransactionController extends Controller
             ], 422);
         }
 
-        $livestock = Livestock::whereHas('kandang', function($query) {
+        $buyItems = [];
+
+        foreach ($request->livestocks as $value) {
+            $livestock = Livestock::whereHas('kandang', function ($query) {
                 $query->where('farmer_id', '!=', Auth::user()->id);
             })
-            ->whereNotNull('sold_proposed_price')
-            ->whereNull('sold_deal_price')
-            ->whereNull('dead_year')
-            ->with('kandang')
-            ->first();
+                ->whereNotNull('sold_proposed_price')
+                ->whereNull('sold_deal_price')
+                ->whereNull('dead_year')
+                ->where('id', $value['livestock_id'])
+                ->first();
 
-        if (!isset($livestock)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Livestock is not a valid sold item',
-                'payload' => []
-            ]); 
+            if (!isset($livestock)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Livestock is not a valid sold item',
+                    'payload' => []
+                ], 400);
+            }
+
+            $buyItems[] = ['livestock_id' => $livestock->id];
         }
 
-        LivestockBuy::create([
-            'livestock_id' => $request->livestock_id,
+        $livestockBuy = LivestockBuy::create([
+            'kandang_id' => $request->kandang_id,
             'seller_id' => $livestock->kandang->farmer_id,
             'buyer_id' => Auth::user()->id,
-            'price' => $request->deal_price,
-            'status' => 'SUDAH TERJUAL',
-            'deal_at' => date('Y-m-d H:i:s')
+            'price' => $request->deal_price
         ]);
 
-        $livestock->update([
-            'sold_deal_price' => $request->deal_price,
-            'sold_year' => date('Y'),
-            'sold_month' => date('m'),
-            'sold_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
-            'acquired_status' => 'JUAL',
-            'availability' => 'TIDAK TERSEDIA'
-        ]);
-
-        // copy livestock
-        $livestock = Livestock::create([
-            'kandang_id' => $request->kandang_id,
-            'pakan_id' => $livestock->pakan_id,
-            'limbah_id' => $livestock->limbah_id,
-            'age' => $livestock->age,
-            'type_id' => $livestock->type_id,
-            'acquired_status' => 'BELI',
-            'acquired_year' => date('Y'),
-            'acquired_month' => date('m'),
-            'acquired_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
-            'code' => $this->generateRandomCode('TRK', 'livestocks', 'code'),
-            'availability' => 'TERSEDIA'
-        ]);
+        $livestockBuy->items()->createMany($buyItems);
 
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'payload' => $livestock
-        ]); 
+            'payload' => []
+        ]);
     }
 
-    function generateRandomCode($prefix, $table, $column) {
+    public function indexProposal()
+    {
+        $livestockBuys = LivestockBuy::where('seller_id', Auth::user()->id)
+            ->with(['buyer', 'items.livestock'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $livestockBuys
+        ]);
+    }
+
+    public function updateProposal(Request $request, $id)
+    {
+        $livestockBuy = LivestockBuy::where('seller_id', Auth::user()->id)->findOrFail($id);
+        if ($livestockBuy->status !== "MENUNGGU") {
+            return response()->json([
+                'success' => false,
+                'message' => 'Status penawaran sudah pernah diupdate',
+                'payload' => []
+            ], 400);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            if ($request->status == 'DISETUJUI') {
+                $perPrice = count($livestockBuy->items) == 0 ? 0 : ($livestockBuy->price / count($livestockBuy->items));
+
+                foreach ($livestockBuy->items as $item) {
+                    $livestock = $item->livestock;
+
+                    if (isset($livestock->sold_deal_price) || isset($livestock->sold_year)) {
+                        DB::rollback();
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Ternak #' . $livestock->code . ' sudah terjual ke pembeli lain.',
+                            'payload' => []
+                        ]);
+                    }
+
+                    $item->livestock()->update([
+                        'sold_deal_price' => $perPrice,
+                        'sold_year' => date('Y'),
+                        'sold_month' => date('m'),
+                        'sold_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
+                        'acquired_status' => 'JUAL',
+                        'availability' => 'TIDAK TERSEDIA'
+                    ]);
+
+                    // copy livestock
+                    $livestock = Livestock::create([
+                        'kandang_id' => $livestockBuy->kandang_id,
+                        'pakan_id' => $livestock->pakan_id,
+                        'limbah_id' => $livestock->limbah_id,
+                        'age' => $livestock->age,
+                        'type_id' => $livestock->type_id,
+                        'acquired_status' => 'BELI',
+                        'acquired_year' => date('Y'),
+                        'acquired_month' => date('m'),
+                        'acquired_month_name' => strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM')),
+                        'code' => $this->generateRandomCode('TRK', 'livestocks', 'code'),
+                        'availability' => 'TERSEDIA'
+                    ]);
+                }
+            }
+
+            $livestockBuy->update([
+                'status' => $request->status,
+                'status_updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem',
+                'payload' => [
+                    'error' => $th->getMessage()
+                ]
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => []
+        ]);
+    }
+
+    function generateRandomCode($prefix, $table, $column)
+    {
         $rand = $prefix . "_" . mt_rand(1000000000, 9999999999);
-    
+
         $data = DB::table($table)->select('id')->where($column, $rand)->first();
-        if (isset($data)) 
+        if (isset($data))
             return generateRandomCode($prefix, $table, $column);
-    
+
         return $rand;
     }
 }

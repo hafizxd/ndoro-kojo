@@ -53,12 +53,15 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/births', [LivestockController::class, 'birthStore']);
         Route::post('/deads', [LivestockController::class, 'deadUpdate']);
         Route::post('/status/update', [LivestockController::class, 'updateStatus']);
+        Route::post('/image/update', [LivestockController::class, 'updateImage']);
     });
 
     Route::group(["prefix" => '/transactions'], function () {
         Route::get('/events', [TransactionController::class, 'indexEvent']);
         Route::post('/sells', [TransactionController::class, 'sell']);
         Route::post('/buys', [TransactionController::class, 'buy']);
+        Route::get('/proposals', [TransactionController::class, 'indexProposal']);
+        Route::post('/proposals/{id}', [TransactionController::class, 'updateProposal']);
     });
 
     Route::group(["prefix" => '/sliders'], function () {
@@ -77,5 +80,5 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/livestock-types', [ReferenceController::class, 'livestockTypeList']);
 
         Route::get('/slider-categories', [ReferenceController::class, 'sliderCategoryList']);
-    }); 
+    });
 });

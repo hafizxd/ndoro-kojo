@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,12 +12,12 @@ return new class extends Migration
     {
         Schema::create('livestock_buys', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->foreignId('livestock_id')->constrained();
-            $table->foreignId('seller_id')->constrained( table: 'farmers' );
-            $table->foreignId('buyer_id')->nullable()->constrained( table: 'farmers' );
+            $table->foreignId('kandang_id')->constrained(table: 'kandang');
+            $table->foreignId('seller_id')->constrained(table: 'farmers');
+            $table->foreignId('buyer_id')->nullable()->constrained(table: 'farmers');
             $table->double('price')->nullable();
-            $table->enum('status', ['BELUM TERJUAL', 'SUDAH TERJUAL'])->default('BELUM TERJUAL');
-            $table->datetime('deal_at')->nullable();
+            $table->enum('status', ['MENUNGGU', 'DISETUJUI', 'DITOLAK'])->default('MENUNGGU');
+            $table->datetime('status_updated_at')->nullable();
             $table->timestamps();
         });
     }

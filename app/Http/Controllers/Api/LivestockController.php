@@ -14,22 +14,23 @@ use Illuminate\Support\Facades\DB;
 
 class LivestockController extends Controller
 {
-    public function index(Request $request) {
-        $livestocks = Livestock::whereHas('kandang', function($query) use ($request) {
+    public function index(Request $request)
+    {
+        $livestocks = Livestock::whereHas('kandang', function ($query) use ($request) {
             $query->where('farmer_id', Auth::user()->id)
-                ->when(isset($request->kandang_type_id), function($query2) use ($request) {
+                ->when(isset($request->kandang_type_id), function ($query2) use ($request) {
                     $query2->where('type_id', $request->kandang_type_id);
                 });
-        })       
-        ->when(isset($request->kandang_id), function($query) use ($request) {
-            $query->where('kandang_id', $request->kandang_id);
         })
-        ->when(isset($request->livestock_type_id), function($query) use ($request) {
-            $query->where('type_id', $request->livestock_type_id);
-        })
-        ->whereNull('dead_year')
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->when(isset($request->kandang_id), function ($query) use ($request) {
+                $query->where('kandang_id', $request->kandang_id);
+            })
+            ->when(isset($request->livestock_type_id), function ($query) use ($request) {
+                $query->where('type_id', $request->livestock_type_id);
+            })
+            ->whereNull('dead_year')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -38,7 +39,8 @@ class LivestockController extends Controller
         ]);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'kandang.name' => 'required',
             'kandang.type_id' => 'required|exists:livestock_types,id',
@@ -98,17 +100,19 @@ class LivestockController extends Controller
         ]);
     }
 
-    function generateRandomCode($prefix, $table, $column) {
+    function generateRandomCode($prefix, $table, $column)
+    {
         $rand = $prefix . "_" . mt_rand(1000000000, 9999999999);
-    
+
         $data = DB::table($table)->select('id')->where($column, $rand)->first();
-        if (isset($data)) 
+        if (isset($data))
             return generateRandomCode($prefix, $table, $column);
-    
+
         return $rand;
     }
 
-    public function birthStore(Request $request) {
+    public function birthStore(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'kandang_id' => 'required|exists:kandang,id',
             'pakan_id' => 'required|exists:pakan,id',
@@ -154,7 +158,8 @@ class LivestockController extends Controller
         ]);
     }
 
-    public function deadUpdate(Request $request) {
+    public function deadUpdate(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:livestocks,id',
             'dead_type' => 'required',
@@ -184,7 +189,7 @@ class LivestockController extends Controller
             })
             ->whereNull('dead_year')
             ->firstOrFail();
-            
+
         $livestock->update($livestockReq);
 
         return response()->json([
@@ -193,8 +198,9 @@ class LivestockController extends Controller
             'payload' => $livestock
         ]);
     }
-    
-    public function updateStatus(Request $request) {
+
+    public function updateStatus(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:livestocks,id',
             'status' => 'required|in:BELI,JUAL,LAHIR,MATI',
@@ -225,15 +231,13 @@ class LivestockController extends Controller
                 'acquired_month' => $request->month,
                 'acquired_month_name' => strtoupper(Carbon::createFromFormat('m', $request->month)->locale('id')->isoFormat('MMMM'))
             ]);
-        } 
-        else if ($request->status == 'MATI') {
+        } else if ($request->status == 'MATI') {
             $updateData = array_merge($updateData, [
                 'dead_year' => $request->year,
                 'dead_month' => $request->month,
                 'dead_month_name' => strtoupper(Carbon::createFromFormat('m', $request->month)->locale('id')->isoFormat('MMMM'))
             ]);
-        }
-        else if ($request->status == 'JUAL') {
+        } else if ($request->status == 'JUAL') {
             $updateData = array_merge($updateData, [
                 'sold_proposed_price' => 1,
                 'sold_deal_price' => 1,
@@ -249,6 +253,39 @@ class LivestockController extends Controller
             'success' => true,
             'message' => 'Success',
             'payload' => $livestock
+        ]);
+    }
+
+    public function updateImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:livestocks,id',
+            'image' => 'required|image',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation fails.',
+                'payload' => [
+                    'errors' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        $livestock = Livestock::whereHas('kandang', function ($query) {
+            $query->where('farmer_id', Auth::user()->id);
+        })->findOrFail($request->id);
+
+        $fileName = time() . '_' . $request->image->getClientOriginalName();
+        $request->image->storeAs('livestocks', $fileName, 'public');
+
+        $livestock->update(['sold_image' => $fileName]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => []
         ]);
     }
 }
