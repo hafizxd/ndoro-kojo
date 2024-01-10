@@ -6,6 +6,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ImportDBController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LivestockController;
+use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\ArticleCategoryController;
 use App\Http\Controllers\AuthenticatedSessionControler;
 
@@ -47,7 +48,7 @@ Route::middleware('web.auth')->group(function () {
     });
 
     Route::group(["prefix" => '/sliders'], function () {
-        Route::group(['prefix'=> 'categories'], function () {
+        Route::group(['prefix' => 'categories'], function () {
             Route::get('/', [ArticleCategoryController::class, 'index'])->name('slider.category.index');
             Route::post('/store', [ArticleCategoryController::class, 'store'])->name('slider.category.store');
             Route::post('/{id}/update', [ArticleCategoryController::class, 'update'])->name('slider.category.update');
@@ -55,7 +56,7 @@ Route::middleware('web.auth')->group(function () {
         });
 
 
-        Route::group(['prefix'=> '{slug}'], function () {
+        Route::group(['prefix' => '{slug}'], function () {
             Route::get('/', [ArticleController::class, 'index'])->name('slider.index');
 
             Route::post('store', [ArticleController::class, 'store'])->name('slider.store');
@@ -70,6 +71,12 @@ Route::middleware('web.auth')->group(function () {
         Route::get('/report/detail/{urlType}/{livetockTypeId}/export', [LivestockController::class, 'reportDetailExport'])->name('livestock.report.detail.export');
         Route::get('/', [LivestockController::class, 'index'])->name('livestock.index');
         Route::post('/update', [LivestockController::class, 'updateStatus'])->name('livestock.update-status');
+    });
+
+    Route::group(["prefix" => '/references', 'as' => 'reference.'], function () {
+        Route::get('/regencies', [ReferenceController::class, 'regencyList'])->name('regency');
+        Route::get('/districts', [ReferenceController::class, 'districtList'])->name('district');
+        Route::get('/villages', [ReferenceController::class, 'villageList'])->name('village');
     });
 
     Route::post('logout', [AuthenticatedSessionControler::class, 'logout'])->name('logout');

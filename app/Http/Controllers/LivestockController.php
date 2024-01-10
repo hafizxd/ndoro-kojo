@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Province;
 use Excel;
 use App\Exports\LivestockReportExport;
 use App\Models\LivestockType;
@@ -11,7 +12,8 @@ use DataTables;
 
 class LivestockController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         if ($request->ajax()) {
             $data = Livestock::select('*')
                 ->has('kandang.livestockType')
@@ -22,19 +24,19 @@ class LivestockController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('farmer', function($row) {
+                ->addColumn('farmer', function ($row) {
                     return $row->kandang?->farmer?->fullname;
                 })
-                ->addColumn('kandang', function($row) {
+                ->addColumn('kandang', function ($row) {
                     return $row->kandang?->name;
                 })
-                ->addColumn('pakan', function($row) {
+                ->addColumn('pakan', function ($row) {
                     return $row->pakan?->jenis_pakan;
                 })
-                ->addColumn('limbah', function($row) {
+                ->addColumn('limbah', function ($row) {
                     return $row->limbah?->pengolahan_limbah;
                 })
-                ->addColumn('status', function($row) {
+                ->addColumn('status', function ($row) {
                     if (isset($row->dead_year)) {
                         $res = 'MATI';
                     } else if (isset($row->sold_deal_price)) {
@@ -44,16 +46,16 @@ class LivestockController extends Controller
                     }
 
                     $statusArr = ['LAHIR', 'MATI', 'JUAL', 'BELI'];
-                    $select = "<select class='form-control' id='status".$row->id."'>";
+                    $select = "<select class='form-control' id='status" . $row->id . "'>";
 
                     foreach ($statusArr as $value) {
-                        $select .= "<option value='".$value."' ".($value == $res ? "selected" : "").">".$value."</option>";
+                        $select .= "<option value='" . $value . "' " . ($value == $res ? "selected" : "") . ">" . $value . "</option>";
                     }
                     $select .= "</select>";
 
                     return $select;
                 })
-                ->addColumn('month', function($row) {
+                ->addColumn('month', function ($row) {
                     $res = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
                     if (isset($res))
                         $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
@@ -61,24 +63,24 @@ class LivestockController extends Controller
                         $res = '';
                     return $res;
                 })
-                ->addColumn('year', function($row) {
+                ->addColumn('year', function ($row) {
                     $res = isset($row->dead_year) ? $row->dead_year : $row->acquired_year;
                     return $res;
                 })
-                ->addColumn('province', function($row) {
+                ->addColumn('province', function ($row) {
                     return $row->kandang?->province?->name;
                 })
-                ->addColumn('regency', function($row) {
+                ->addColumn('regency', function ($row) {
                     return $row->kandang?->regency?->name;
                 })
-                ->addColumn('district', function($row) {
+                ->addColumn('district', function ($row) {
                     return $row->kandang?->district?->name;
                 })
-                ->addColumn('village', function($row) {
+                ->addColumn('village', function ($row) {
                     return $row->kandang?->village?->name;
                 })
-                ->addColumn('action', function($row) {
-                    return '<a href="javascript:saveData('.$row->id.')" class="edit btn btn-success btn-sm">Simpan</a>';
+                ->addColumn('action', function ($row) {
+                    return '<a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-success btn-sm">Simpan</a>';
                 })
                 ->rawColumns(['farmer', 'kandang', 'pakan', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village', 'action'])
                 ->make(true);
@@ -87,7 +89,8 @@ class LivestockController extends Controller
         return view('livestocks.index');
     }
 
-    public function updateStatus(Request $request) {
+    public function updateStatus(Request $request)
+    {
         $livestock = Livestock::findOrFail($request->id);
 
         $year = date('Y');
@@ -130,80 +133,170 @@ class LivestockController extends Controller
         ]);
     }
 
-    public function report(Request $request) {
+    public function report(Request $request)
+    {
+        $provinces = Province::all();
+
+        $dateStart = null;
+        $dateEnd = null;
+        if (isset($request->daterange)) {
+            $dateExp = explode(' to ', $request->daterange);
+            $dateStart = $dateExp[0];
+            $dateEnd = $dateExp[1];
+        }
+
         $livestockTypes = LivestockType::where('level', 1)
-            ->withCount(['livestocksThroughKandang AS total_ternak' => function($query) {
-                $query->has('kandang')
-                    ->whereNull('dead_year');
-            }])
-            ->withCount(['livestocksThroughKandang AS transaksi_jual_beli' => function($query) {
-                $query->has('kandang')
-                    ->has('livestockBuy');
-            }])
-            ->withCount(['livestocksThroughKandang AS sedang_dijual' => function($query) {
-                $query->has('kandang')
-                    ->whereNull('dead_year')
-                    ->whereNull('sold_deal_price')
-                    ->whereNotNull('sold_proposed_price');
-            }])
-            ->withCount(['livestocksThroughKandang AS lahir' => function($query) {
-                $query->has('kandang')
-                    ->where('acquired_status', 'LAHIR');
-            }])
-            ->withCount(['livestocksThroughKandang AS mati' => function($query) {
-                $query->has('kandang')
-                    ->whereNotNull('dead_year');
-            }])
+            ->when(!empty($request->province_id) || !empty($request->regency_id) || !empty($request->district_id) || !empty($request->village_id), function ($query) use ($request) {
+                $query->where(function ($query) use ($request) {
+                    $query->doesntHave('kandang')->orWhereHas('kandang', function ($query) use ($request) {
+                        $query->when(!empty($request->province_id), function ($query) use ($request) {
+                            $query->where('province_id', $request->province_id);
+                        })->when(!empty($request->regency_id), function ($query) use ($request) {
+                            $query->where('regency_id', $request->regency_id);
+                        })->when(!empty($request->district_id), function ($query) use ($request) {
+                            $query->where('district_id', $request->district_id);
+                        })->when(!empty($request->village_id), function ($query) use ($request) {
+                            $query->where('village_id', $request->village_id);
+                        });
+                    });
+                });
+            })
+            ->withCount([
+                'livestocksThroughKandang AS total_ternak' => function ($query) use ($dateStart, $dateEnd) {
+                    $query->has('kandang')
+                        ->whereNull('dead_year')
+                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where(function ($query) use ($dateStart, $dateEnd) {
+                                $query->whereNull('sold_deal_price')
+                                    ->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                    ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                    ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                    ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                            })
+                                ->orWhere(function ($query) use ($dateStart, $dateEnd) {
+                                    $query->where('sold_month', '>=', explode('/', $dateStart)[1])
+                                        ->where('sold_month', '<=', explode('/', $dateEnd)[1])
+                                        ->where('sold_year', '>=', explode('/', $dateStart)[2])
+                                        ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
+                                });
+                        });
+                }
+            ])
+            ->withCount([
+                'livestocksThroughKandang AS transaksi_jual_beli' => function ($query) use ($dateStart, $dateEnd) {
+                    $query->has('kandang')
+                        ->whereNotNull('sold_deal_price')
+                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where('sold_month', '>=', explode('/', $dateStart)[1])
+                                ->where('sold_month', '<=', explode('/', $dateEnd)[1])
+                                ->where('sold_year', '>=', explode('/', $dateStart)[2])
+                                ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
+                        });
+                }
+            ])
+            ->withCount([
+                'livestocksThroughKandang AS sedang_dijual' => function ($query) use ($dateStart, $dateEnd) {
+                    $query->has('kandang')
+                        ->whereNull('dead_year')
+                        ->whereNull('sold_deal_price')
+                        ->whereNotNull('sold_proposed_price')
+                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where(function ($query) use ($dateStart, $dateEnd) {
+                                $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                    ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                    ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                    ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                            });
+                        });
+                }
+            ])
+            ->withCount([
+                'livestocksThroughKandang AS lahir' => function ($query) use ($dateStart, $dateEnd) {
+                    $query->has('kandang')
+                        ->where('acquired_status', 'LAHIR')
+                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where(function ($query) use ($dateStart, $dateEnd) {
+                                $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                    ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                    ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                    ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                            });
+                        });
+                }
+            ])
+            ->withCount([
+                'livestocksThroughKandang AS mati' => function ($query) use ($dateStart, $dateEnd) {
+                    $query->has('kandang')
+                        ->whereNotNull('dead_year')
+                        ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
+                            $query->where('dead_month', '>=', explode('/', $dateStart)[1])
+                                ->where('dead_month', '<=', explode('/', $dateEnd)[1])
+                                ->where('dead_year', '>=', explode('/', $dateStart)[2])
+                                ->where('dead_year', '<=', explode('/', $dateEnd)[2]);
+                        });
+                }
+            ])
             ->orderBy('livestock_type')
-            ->get();    
+            ->get();
 
         foreach ($livestockTypes as $key => $value) {
             $livestockTypeChildren = LivestockType::where('level', 2)
-                ->withCount(['livestocks AS total_ternak' => function($query) use ($value) {
+                ->withCount([
+                    'livestocks AS total_ternak' => function ($query) use ($value) {
                         $query->whereHas('kandang', function ($query) use ($value) {
                             $query->where('type_id', $value->id);
                         })
-                        ->whereNull('dead_year');
-                }])
-                ->withCount(['livestocks AS transaksi_jual_beli' => function($query) use ($value) {
+                            ->whereNull('dead_year');
+                    }
+                ])
+                ->withCount([
+                    'livestocks AS transaksi_jual_beli' => function ($query) use ($value) {
                         $query->whereHas('kandang', function ($query) use ($value) {
                             $query->where('type_id', $value->id);
                         })
-                        ->has('livestockBuy');
-                }])
-                ->withCount(['livestocks AS sedang_dijual' => function($query) use ($value) {
+                            ->whereNotNull('sold_deal_price');
+                    }
+                ])
+                ->withCount([
+                    'livestocks AS sedang_dijual' => function ($query) use ($value) {
                         $query->whereHas('kandang', function ($query) use ($value) {
                             $query->where('type_id', $value->id);
                         })
-                        ->whereNull('dead_year')
-                        ->whereNull('sold_deal_price')
-                        ->whereNotNull('sold_proposed_price');
-                }])
-                ->withCount(['livestocks AS lahir' => function($query) use ($value) {
+                            ->whereNull('dead_year')
+                            ->whereNull('sold_deal_price')
+                            ->whereNotNull('sold_proposed_price');
+                    }
+                ])
+                ->withCount([
+                    'livestocks AS lahir' => function ($query) use ($value) {
                         $query->whereHas('kandang', function ($query) use ($value) {
                             $query->where('type_id', $value->id);
                         })
-                        ->where('acquired_status', 'LAHIR');
-                }])
-                ->withCount(['livestocks AS mati' => function($query) use ($value) {
+                            ->where('acquired_status', 'LAHIR');
+                    }
+                ])
+                ->withCount([
+                    'livestocks AS mati' => function ($query) use ($value) {
                         $query->whereHas('kandang', function ($query) use ($value) {
                             $query->where('type_id', $value->id);
                         })
-                        ->whereNotNull('dead_year');
-                }])
+                            ->whereNotNull('dead_year');
+                    }
+                ])
                 ->where('parent_type_id', $value->id)
                 ->orderBy('livestock_type')
-                ->get();       
+                ->get();
 
             $livestockTypes[$key]->children = $livestockTypeChildren;
         }
 
-        return view('livestocks.reports.livestock-type', compact('livestockTypes'));
+        return view('livestocks.reports.livestock-type', compact('provinces', 'livestockTypes', 'dateStart', 'dateEnd'));
     }
 
-    public function reportDetail($urlType, $livestockTypeId, Request $request) {
+    public function reportDetail($urlType, $livestockTypeId, Request $request)
+    {
         $urlArr = ['total-ternak', 'transaksi-jual-beli', 'sedang-dijual', 'lahir', 'mati'];
-        if (!in_array($urlType, $urlArr)) 
+        if (!in_array($urlType, $urlArr))
             abort(404);
 
         $livestockType = null;
@@ -219,8 +312,19 @@ class LivestockController extends Controller
         }
 
         if ($request->ajax()) {
-            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah']);
-        
+            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
+                ->whereHas('kandang', function ($query) use ($request) {
+                    $query->when(!empty($request->province_id), function ($query) use ($request) {
+                        $query->where('province_id', $request->province_id);
+                    })->when(!empty($request->regency_id), function ($query) use ($request) {
+                        $query->where('regency_id', $request->regency_id);
+                    })->when(!empty($request->district_id), function ($query) use ($request) {
+                        $query->where('district_id', $request->district_id);
+                    })->when(!empty($request->village_id), function ($query) use ($request) {
+                        $query->where('village_id', $request->village_id);
+                    });
+                });
+
             if (isset($livestockType)) {
                 $q->whereHas('kandang', function ($query) use ($livestockType) {
                     $query->where('type_id', $livestockType->id);
@@ -237,7 +341,7 @@ class LivestockController extends Controller
                     });
             } else {
                 if ($urlType == 'transaksi-jual-beli') {
-                    $q->has('livestockBuy')
+                    $q->whereNotNull('sold_deal_price')
                         ->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
                             $query->where('sold_month', '>=', explode('/', $dateStart)[1])
                                 ->where('sold_month', '<=', explode('/', $dateEnd)[1])
@@ -250,12 +354,12 @@ class LivestockController extends Controller
                     if ($urlType == 'total-ternak') {
                         $q->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
                             $query->where(function ($query) use ($dateStart, $dateEnd) {
-                                    $query->whereNull('sold_deal_price')
-                                        ->where('acquired_month', '>=', explode('/', $dateStart)[1])
-                                        ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
-                                        ->where('acquired_year', '>=', explode('/', $dateStart)[2])
-                                        ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
-                                })
+                                $query->whereNull('sold_deal_price')
+                                    ->where('acquired_month', '>=', explode('/', $dateStart)[1])
+                                    ->where('acquired_month', '<=', explode('/', $dateEnd)[1])
+                                    ->where('acquired_year', '>=', explode('/', $dateStart)[2])
+                                    ->where('acquired_year', '<=', explode('/', $dateEnd)[2]);
+                            })
                                 ->orWhere(function ($query) use ($dateStart, $dateEnd) {
                                     $query->where('sold_month', '>=', explode('/', $dateStart)[1])
                                         ->where('sold_month', '<=', explode('/', $dateEnd)[1])
@@ -263,8 +367,7 @@ class LivestockController extends Controller
                                         ->where('sold_year', '<=', explode('/', $dateEnd)[2]);
                                 });
                         });
-                    } 
-                    else {
+                    } else {
                         $q->when(isset($dateStart) && isset($dateEnd), function ($query) use ($dateStart, $dateEnd) {
                             $query->where(function ($query) use ($dateStart, $dateEnd) {
                                 $query->where('acquired_month', '>=', explode('/', $dateStart)[1])
@@ -276,7 +379,7 @@ class LivestockController extends Controller
 
                         if ($urlType == 'sedang-dijual') {
                             $q->whereNull('sold_deal_price')
-                                ->whereNotNull('sold_proposed_price');   
+                                ->whereNotNull('sold_proposed_price');
                         } else if ($urlType == 'lahir') {
                             $q->where('acquired_status', 'LAHIR');
                         }
@@ -285,73 +388,76 @@ class LivestockController extends Controller
             }
 
             return DataTables::of($q)
-                    ->addIndexColumn()
-                    ->addColumn('farmer', function($row) {
-                        return $row->kandang?->farmer?->fullname;
-                    })
-                    ->addColumn('kandang', function($row) {
-                        return $row->kandang?->name;
-                    })
-                    ->addColumn('pakan', function($row) {
-                        return $row->pakan?->jenis_pakan;
-                    })
-                    ->addColumn('limbah', function($row) {
-                        return $row->limbah?->pengolahan_limbah;
-                    })
-                    ->addColumn('status', function($row) {
-                        if (isset($row->dead_year))
-                            $res = 'MATI';
-                        else if (isset($row->sold_year))
-                            $res = 'JUAL';
-                        else 
-                            $res = $row->acquired_status;
-                        return $res;
-                    })
-                    ->addColumn('month', function($row) {
-                        if (isset($row->dead_year))
-                            $res = $row->dead_month;
-                        else if (isset($row->sold_year))
-                            $res = $row->sold_month;
-                        else 
-                            $res = $row->acquired_month;
+                ->addIndexColumn()
+                ->addColumn('farmer', function ($row) {
+                    return $row->kandang?->farmer?->fullname;
+                })
+                ->addColumn('kandang', function ($row) {
+                    return $row->kandang?->name;
+                })
+                ->addColumn('pakan', function ($row) {
+                    return $row->pakan?->jenis_pakan;
+                })
+                ->addColumn('limbah', function ($row) {
+                    return $row->limbah?->pengolahan_limbah;
+                })
+                ->addColumn('status', function ($row) {
+                    if (isset($row->dead_year))
+                        $res = 'MATI';
+                    else if (isset($row->sold_year))
+                        $res = 'JUAL';
+                    else
+                        $res = $row->acquired_status;
+                    return $res;
+                })
+                ->addColumn('month', function ($row) {
+                    if (isset($row->dead_year))
+                        $res = $row->dead_month;
+                    else if (isset($row->sold_year))
+                        $res = $row->sold_month;
+                    else
+                        $res = $row->acquired_month;
 
-                        if (isset($res))
-                            $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
-                        else
-                            $res = '';
-                        return $res;
-                    })
-                    ->addColumn('year', function($row) {
-                        if (isset($row->dead_year))
-                            $res = $row->dead_year;
-                        else if (isset($row->sold_year))
-                            $res = $row->sold_year;
-                        else 
-                            $res = $row->acquired_year;
+                    if (isset($res))
+                        $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
+                    else
+                        $res = '';
+                    return $res;
+                })
+                ->addColumn('year', function ($row) {
+                    if (isset($row->dead_year))
+                        $res = $row->dead_year;
+                    else if (isset($row->sold_year))
+                        $res = $row->sold_year;
+                    else
+                        $res = $row->acquired_year;
 
-                        return $res;
-                    })
-                    ->addColumn('province', function($row) {
-                        return $row->kandang?->province?->name;
-                    })
-                    ->addColumn('regency', function($row) {
-                        return $row->kandang?->regency?->name;
-                    })
-                    ->addColumn('district', function($row) {
-                        return $row->kandang?->district?->name;
-                    })
-                    ->addColumn('village', function($row) {
-                        return $row->kandang?->village?->name;
-                    })
-                    ->rawColumns(['farmer', 'kandang', 'pakan', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village'])
-                    ->make(true);
+                    return $res;
+                })
+                ->addColumn('province', function ($row) {
+                    return $row->kandang?->province?->name;
+                })
+                ->addColumn('regency', function ($row) {
+                    return $row->kandang?->regency?->name;
+                })
+                ->addColumn('district', function ($row) {
+                    return $row->kandang?->district?->name;
+                })
+                ->addColumn('village', function ($row) {
+                    return $row->kandang?->village?->name;
+                })
+                ->rawColumns(['farmer', 'kandang', 'pakan', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village'])
+                ->make(true);
+        } else {
+            $provinces = Province::all();
         }
 
-        return view('livestocks.reports.livestock', compact('urlType', 'livestockType', 'dateStart', 'dateEnd'));   
+        return view('livestocks.reports.livestock', compact('urlType', 'livestockType', 'dateStart', 'dateEnd', 'provinces'));
     }
 
-    public function reportDetailExport($urlType, $livestockTypeId, Request $request) {
-        return Excel::download(new LivestockReportExport($urlType, $livestockTypeId, $request), 'livestock_report_'.time().'.xlsx');
+    public function reportDetailExport($urlType, $livestockTypeId, Request $request)
+    {
+        return Excel::download(new LivestockReportExport($urlType, $livestockTypeId, $request), 'livestock_report_' . time() . '.xlsx');
     }
 
     // function reportDetailTransaksi($urlType, $livestockType, $request) {
