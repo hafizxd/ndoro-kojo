@@ -51,7 +51,7 @@ class LivestockController extends Controller
             'kandang.district_id' => 'required|exists:districts,id',
             'kandang.village_id' => 'required|exists:villages,id',
             'kandang.sensor_status' => 'required|in:TERPASANG,TIDAK TERPASANG',
-            'livestock.pakan_id' => 'required|exists:pakan,id',
+            'livestock.pakan' => 'nullable',
             'livestock.limbah_id' => 'required|exists:limbah,id',
             'livestock.age' => 'required|in:ANAK,DEWASA',
             'livestock.type_id' => 'required|exists:livestock_types,id'
@@ -115,10 +115,11 @@ class LivestockController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'kandang_id' => 'required|exists:kandang,id',
-            'pakan_id' => 'required|exists:pakan,id',
+            'pakan' => 'nullable',
             'limbah_id' => 'required|exists:limbah,id',
             'age' => 'required|in:ANAK,DEWASA',
-            'type_id' => 'required|exists:livestock_types,id'
+            'type_id' => 'required|exists:livestock_types,id',
+            'nominal' => 'nullable'
         ]);
 
         if ($validator->fails()) {
@@ -149,12 +150,20 @@ class LivestockController extends Controller
         $livestockReq['acquired_month'] = date('m');
         $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
         $livestockReq['availability'] = 'TERSEDIA';
-        $livestock = Livestock::create($livestockReq);
+
+        $nominal = $request->nominal ?? 1;
+
+        $livestocks = [];
+        for ($i = 0; $i < $nominal; $i++) {
+            $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
+
+            $livestocks[] = Livestock::create($livestockReq);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Success',
-            'payload' => $livestock
+            'payload' => $livestocks
         ]);
     }
 

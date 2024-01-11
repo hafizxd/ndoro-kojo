@@ -12,7 +12,8 @@ use App\Models\Article;
 
 class SearchController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $search = '';
         if (!isset($request->search)) {
             return response()->json([
@@ -32,15 +33,15 @@ class SearchController extends Controller
             ->where(function ($query) use ($search) {
                 $query
                     ->whereHas('livestockType', function ($query) use ($search) {
-                        $query->where('livestock_type', 'LIKE', '%'.$search.'%');
+                        $query->where('livestock_type', 'LIKE', '%' . $search . '%');
                     })
                     ->orWhereHas('kandang', function ($query) use ($search) {
                         $query
                             ->whereHas('livestockType', function ($query) use ($search) {
-                                $query->where('livestock_type', 'LIKE', '%'.$search.'%')->where('level', 1);
+                                $query->where('livestock_type', 'LIKE', '%' . $search . '%')->where('level', 1);
                             })
                             ->orWhereHas('farmer', function ($query) use ($search) {
-                                $query->where('fullname', 'LIKE', '%'.$search.'%');
+                                $query->where('fullname', 'LIKE', '%' . $search . '%');
                             });
                     });
             })
@@ -64,13 +65,13 @@ class SearchController extends Controller
             ->where('farmer_id', Auth::user()->id)
             ->where(function ($query) use ($search) {
                 $query
-                    ->where('name', 'LIKE', '%'.$search.'%')
+                    ->where('name', 'LIKE', '%' . $search . '%')
                     ->orWhereHas('livestockType', function ($query) use ($search) {
-                        $query->where('livestock_type', 'LIKE', '%'.$search.'%');
+                        $query->where('livestock_type', 'LIKE', '%' . $search . '%');
                     })
                     ->orWhereHas('livestocks', function ($query) use ($search) {
                         $query->whereHas('livestockType', function ($query) use ($search) {
-                            $query->where('livestock_type', 'LIKE', '%'.$search.'%');
+                            $query->where('livestock_type', 'LIKE', '%' . $search . '%');
                         });
                     });
             })
@@ -92,13 +93,13 @@ class SearchController extends Controller
 
             foreach ($kandang->livestocks as $livestock) {
                 $total++;
-                
+
                 if (empty($livestock->dead_year)) {
-                    if ($livestock->acquired_status == "BELI") 
+                    if ($livestock->acquired_status == "BELI")
                         $beli++;
                     else if ($livestock->acquired_status == "LAHIR")
                         $lahir++;
-                    
+
                     if (isset($livestock->sold_proposed_price))
                         $jual++;
                 } else {
@@ -121,8 +122,7 @@ class SearchController extends Controller
         // SLIDERS 
         // brebes today
         $articleTodays = Article::select('id', 'title', 'thumbnail', 'created_at', 'updated_at')
-            ->where('title', 'LIKE', '%'.$search.'%')
-            ->where('type', 'TODAY')
+            ->where('title', 'LIKE', '%' . $search . '%')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -134,8 +134,7 @@ class SearchController extends Controller
 
         // finance digital
         $articleFinances = Article::select('id', 'title', 'thumbnail', 'created_at', 'updated_at')
-            ->where('title', 'LIKE', '%'.$search.'%')
-            ->where('type', 'FINANCE')
+            ->where('title', 'LIKE', '%' . $search . '%')
             ->orderBy('created_at', 'desc')
             ->get();
 
