@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ArticleCategory;
 use Illuminate\Http\Request;
 use App\Models\Livestock;
 use App\Models\Kandang;
@@ -29,7 +30,7 @@ class SearchController extends Controller
             ->whereNull('sold_deal_price')
             ->whereNull('dead_year')
             ->orderBy('updated_at', 'desc')
-            ->with(['livestockType', 'kandang.farmer'])
+            ->with(['kandang.farmer', 'livestockType'])
             ->where(function ($query) use ($search) {
                 $query
                     ->whereHas('livestockType', function ($query) use ($search) {
@@ -47,17 +48,73 @@ class SearchController extends Controller
             })
             ->get();
 
+        $resultLivestock = [];
+
         foreach ($livestocks as $key => $livestock) {
             if ($livestock->kandang->farmer_id == Auth::user()->id) {
-                $livestocks[$key]->is_mine = true;
+                $livestock->is_mine = true;
             } else {
-                $livestocks[$key]->is_mine = false;
+                $livestock->is_mine = false;
             }
 
-            if (isset($livestocks[$key]->livestockType->image)) {
-                $livestocks[$key]->livestockType->image = Storage::url($livestocks[$key]->livestockType->image);
+            if (isset($livestock->livestockType->image)) {
+                $livestock->livestockType->image = Storage::url($livestock->livestockType->image);
+            }
+
+            if (isset($livestock->sold_image)) {
+                $livestock->sold_image = Storage::url('livestocks/' . $livestock->sold_image);
+            }
+
+            $farmerId = $livestock->kandang->farmer_id;
+            $kandandLivestockTypeId = $livestock->kandang->livestockType->id;
+            $currentResultKey = $farmerId . '_' . $kandandLivestockTypeId;
+
+            if (isset($resultLivestock[$currentResultKey])) {
+                $resultLivestock[$currentResultKey]->price_total += $livestock->sold_proposed_price;
+                $resultLivestock[$currentResultKey]->count_total++;
+
+                $countSubTypeKey = array_search($livestock->livestockType->livestock_type, array_column($resultLivestock[$currentResultKey]->count_per_subtype, 'livestock_type'));
+                if (isset($countSubTypeKey)) {
+                    $resultLivestock[$currentResultKey]->count_per_subtype[$countSubTypeKey]['count'] += 1;
+                } else {
+                    $resultLivestock[$currentResultKey]->count_per_subtype[] = [
+                        'livestock_type' => $livestock->livestockType->livestock_type,
+                        'count' => 1
+                    ];
+                }
+
+                if (isset($livestock->sold_image)) {
+                    $resultLivestock[$currentResultKey]->livestock_images[] = $livestock->sold_image;
+                }
+
+                $resultLivestock[$currentResultKey]->items[] = $livestock;
+            } else {
+                $sellGroup = [
+                    'is_mine' => $livestock->is_mine,
+                    'image' => isset($livestock->kandang?->livestockType) ? Storage::url($livestock->kandang?->livestockType->image) : $livestock->kandang?->livestockType->image,
+                    'livestock_type' => $livestock->kandang?->livestockType?->livestock_type,
+                    'price_total' => $livestock->sold_proposed_price,
+                    'count_total' => 1,
+                    'count_per_subtype' => [
+                        [
+                            'livestock_type' => $livestock->livestockType->livestock_type,
+                            'count' => 1
+                        ]
+                    ],
+                    'livestock_images' => [],
+                    'seller' => $livestock->kandang?->farmer,
+                    'items' => [$livestock]
+                ];
+
+                if (isset($livestock->sold_image)) {
+                    $sellGroup['livestock_images'][] = $livestock->sold_image;
+                }
+
+                $resultLivestock[$currentResultKey] = (object) $sellGroup;
             }
         }
+
+        $resultLivestock = array_values($resultLivestock);
 
 
         // REPORT PER KANDANG
@@ -121,34 +178,31 @@ class SearchController extends Controller
 
         // SLIDERS 
         // brebes today
-        $articleTodays = Article::select('id', 'title', 'thumbnail', 'created_at', 'updated_at')
-            ->where('title', 'LIKE', '%' . $search . '%')
-            ->orderBy('created_at', 'desc')
+        $articleCategories = ArticleCategory::whereHas('articles', function ($query) use ($search) {
+            $query->where('title', 'LIKE', '%' . $search . '%');
+        })
+            ->with([
+                'articles' => function ($query) use ($search) {
+                    $query->where('title', 'LIKE', '%' . $search . '%')
+                        ->orderBy('created_at', 'desc');
+                }
+            ])
+            ->orderBy('title')
             ->get();
 
-        foreach ($articleTodays as $key => $value) {
-            if (isset($value->thumbnail)) {
-                $articleTodays[$key]->thumbnail = Storage::url('sliders/' . $value->thumbnail);
+        foreach ($articleCategories as $keyCat => $value) {
+            foreach ($value->articles as $keyArt => $article) {
+                if (isset($article->thumbnail)) {
+                    $articleCategories[$keyCat]->articles[$keyArt]->thumbnail = Storage::url('sliders/' . $article->thumbnail);
+                }
             }
         }
 
-        // finance digital
-        $articleFinances = Article::select('id', 'title', 'thumbnail', 'created_at', 'updated_at')
-            ->where('title', 'LIKE', '%' . $search . '%')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        foreach ($articleFinances as $key => $value) {
-            if (isset($value->thumbnail)) {
-                $articleFinances[$key]->thumbnail = Storage::url('sliders/' . $value->thumbnail);
-            }
-        }
 
         $res = (object) [
-            'event' => $livestocks,
+            'event' => $resultLivestock,
             'kandang' => $kandangs,
-            'today' => $articleTodays,
-            'finance' => $articleFinances
+            'sliders' => $articleCategories,
         ];
 
         return response()->json([

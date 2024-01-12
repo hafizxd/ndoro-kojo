@@ -10,4 +10,9 @@ class Article extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function articleCategory()
+    {
+        return $this->belongsTo(ArticleCategory::class);
+    }
 }
