@@ -111,6 +111,78 @@ class LivestockController extends Controller
         return $rand;
     }
 
+    public function storeFree(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'kandang_id' => 'required|exists:kandang,id',
+            'status' => 'required|in:JUAL,BELI,LAHIR,INPUT,MATI',
+            'pakan' => 'nullable',
+            'limbah_id' => 'required|exists:limbah,id',
+            'age' => 'required|in:ANAK,DEWASA',
+            'type_id' => 'required|exists:livestock_types,id',
+            'nominal' => 'nullable'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation fails.',
+                'payload' => [
+                    'errors' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        // validate kandang
+        $isKandangExists = Kandang::where('farmer_id', Auth::user()->id)->where('id', $request->kandang_id)->exists();
+        if (!$isKandangExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kandang not found',
+                'payload' => []
+            ]);
+        }
+
+
+        $livestockReq = $request->toArray();
+        unset($livestockReq['status']);
+        $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
+        $livestockReq['acquired_status'] = $request->status == "MATI" ? "INPUT" : $request->status;
+        $livestockReq['acquired_year'] = date('Y');
+        $livestockReq['acquired_month'] = date('m');
+        $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+
+        if ($request->status == 'MATI') {
+            $livestockReq['dead_year'] = date('Y');
+            $livestockReq['dead_month'] = date('m');
+            $livestockReq['dead_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+            $livestockReq['availability'] = 'TIDAK TERSEDIA';
+        } else if ($request->status == 'JUAL') {
+            $livestockReq['sold_year'] = date('Y');
+            $livestockReq['sold_month'] = date('m');
+            $livestockReq['sold_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+            $livestockReq['sold_proposed_price'] = 1;
+            $livestockReq['sold_deal_price'] = 1;
+            $livestockReq['availability'] = 'TIDAK TERSEDIA';
+        }
+
+        $nominal = $request->nominal ?? 1;
+
+        $livestocks = [];
+        for ($i = 0; $i < $nominal; $i++) {
+            $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
+
+            $livestock = Livestock::create($livestockReq);
+            $livestocks[] = Livestock::findOrFail($livestock->id);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => $livestocks
+        ]);
+    }
+
     public function birthStore(Request $request)
     {
         $validator = Validator::make($request->all(), [
