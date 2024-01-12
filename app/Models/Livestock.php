@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Kandang;
 use App\Models\Pakan;
 use App\Models\Limbah;
-use App\Models\LivestockBuy;
 use App\Models\LivestockType;
+use App\Models\LivestockBuyItem;
 
 class Livestock extends Model
 {
@@ -16,23 +16,28 @@ class Livestock extends Model
 
     protected $guarded = [];
 
-    public function livestockType() {
+    public function livestockType()
+    {
         return $this->belongsTo(LivestockType::class, 'type_id');
     }
 
-    public function kandang() {
+    public function kandang()
+    {
         return $this->belongsTo(Kandang::class, 'kandang_id');
     }
 
-    public function pakan() {
+    public function pakan()
+    {
         return $this->belongsTo(Pakan::class);
     }
 
-    public function limbah() {
+    public function limbah()
+    {
         return $this->belongsTo(Limbah::class);
     }
 
-    public function livestockBuy() {
-        return $this->hasOne(LivestockBuy::class);
+    public function livestockBuyItems()
+    {
+        return $this->hasMany(LivestockBuyItem::class);
     }
 }

@@ -4,23 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\Province;
 use Excel;
+use Illuminate\Support\Facades\Validator;
 use App\Exports\LivestockReportExport;
 use App\Models\LivestockType;
 use Illuminate\Http\Request;
 use App\Models\Livestock;
+use App\Models\Limbah;
 use DataTables;
 
 class LivestockController extends Controller
 {
     public function index(Request $request)
     {
+        $limbah = Limbah::all();
+
         if ($request->ajax()) {
             $data = Livestock::select('*')
                 ->has('kandang.livestockType')
                 ->with('kandang', function ($query) {
                     $query->with(['farmer', 'livestockType', 'province', 'district', 'district', 'village']);
                 })
-                ->with(['pakan', 'limbah', 'livestockType']);
+                ->with(['limbah', 'livestockType']);
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -29,9 +33,6 @@ class LivestockController extends Controller
                 })
                 ->addColumn('kandang', function ($row) {
                     return $row->kandang?->name;
-                })
-                ->addColumn('pakan', function ($row) {
-                    return $row->pakan?->jenis_pakan;
                 })
                 ->addColumn('limbah', function ($row) {
                     return $row->limbah?->pengolahan_limbah;
@@ -80,13 +81,116 @@ class LivestockController extends Controller
                     return $row->kandang?->village?->name;
                 })
                 ->addColumn('action', function ($row) {
-                    return '<a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-success btn-sm">Simpan</a>';
+                    $month = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
+                    $year = isset($row->dead_year) ? $row->dead_year : $row->acquired_year;
+
+                    $action = '
+                        <script type="text/javascript">
+                            var rowData_' . md5($row->id) . ' = {
+                                "id" : "' . $row->id . '",
+                                "code" : "' . $row->code . '",
+                                "livestock_type_kandang" : "' . $row->kandang?->livestockType?->livestock_type . '",
+                                "pakan" : "' . $row->pakan . '",
+                                "limbah_id" : "' . $row->limbah_id . '",
+                                "age" : "' . $row->age . '",
+                                "gender" : "' . $row->gender . '",
+                                "month" : "' . $month . '",
+                                "year" : "' . $year . '"
+                            };
+                        </script>
+                    ';
+
+                    $action .= '
+                        <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
+                        <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
+                        <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
+                    ';
+
+                    return $action;
                 })
-                ->rawColumns(['farmer', 'kandang', 'pakan', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village', 'action'])
+                ->rawColumns(['farmer', 'kandang', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village', 'action'])
                 ->make(true);
         }
 
-        return view('livestocks.index');
+        return view('livestocks.index', compact('limbah'));
+    }
+
+    public function update(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:livestocks,id',
+            'pakan' => 'nullable',
+            'limbah' => 'nullable|exists:limbah,id',
+            'age' => 'required',
+            'gender' => 'required',
+            'month' => 'required',
+            'year' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => implode('<br>', $validator->errors()->all())
+            ]);
+        }
+
+        $livestock = Livestock::findOrFail($request->id);
+
+        $updateData = [
+            'limbah_id' => $request->limbah,
+            'age' => $request->age,
+            'gender' => $request->gender
+        ];
+        if (!empty($request->pakan))
+            $updateData['pakan'] = $request->pakan;
+
+        if (isset($livestock->dead_year))
+            $updateData['dead_month'] = $request->month;
+        else
+            $updateData['acquired_month'] = $request->month;
+
+        if (isset($livestock->dead_year))
+            $updateData['dead_year'] = $request->year;
+        else
+            $updateData['acquired_year'] = $request->year;
+
+        $livestock->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => []
+        ]);
+    }
+
+    public function delete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:livestocks,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => implode('<br>', $validator->errors()->all())
+            ]);
+        }
+
+        $livestock = Livestock::findOrFail($request->id);
+        if (count($livestock->livestockBuyItems()->get()) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ternak tidak bisa dihapus karena sedang dalam negosiasi transaksi pembelian'
+            ]);
+        }
+
+        $livestock->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success',
+            'payload' => []
+        ]);
     }
 
     public function updateStatus(Request $request)
@@ -312,7 +416,7 @@ class LivestockController extends Controller
         }
 
         if ($request->ajax()) {
-            $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah'])
+            $q = Livestock::with(['kandang.farmer', 'limbah'])
                 ->whereHas('kandang', function ($query) use ($request) {
                     $query->when(!empty($request->province_id), function ($query) use ($request) {
                         $query->where('province_id', $request->province_id);
@@ -395,9 +499,6 @@ class LivestockController extends Controller
                 ->addColumn('kandang', function ($row) {
                     return $row->kandang?->name;
                 })
-                ->addColumn('pakan', function ($row) {
-                    return $row->pakan?->jenis_pakan;
-                })
                 ->addColumn('limbah', function ($row) {
                     return $row->limbah?->pengolahan_limbah;
                 })
@@ -446,7 +547,7 @@ class LivestockController extends Controller
                 ->addColumn('village', function ($row) {
                     return $row->kandang?->village?->name;
                 })
-                ->rawColumns(['farmer', 'kandang', 'pakan', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village'])
+                ->rawColumns(['farmer', 'kandang', 'limbah', 'status', 'month', 'year', 'province', 'regency', 'village'])
                 ->make(true);
         } else {
             $provinces = Province::all();

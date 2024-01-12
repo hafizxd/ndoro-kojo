@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-US" dir="ltr">
 
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -37,25 +37,27 @@
     <link href="{{ asset('assets/css/user.min.css') }}" type="text/css" rel="stylesheet" id="user-style-default">
 
     <link href="https://cdn.datatables.net/1.11.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>  
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
     <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
         var phoenixIsRTL = window.config.config.phoenixIsRTL;
         if (phoenixIsRTL) {
-          var linkDefault = document.getElementById('style-default');
-          var userLinkDefault = document.getElementById('user-style-default');
-          linkDefault.setAttribute('disabled', true);
-          userLinkDefault.setAttribute('disabled', true);
-          document.querySelector('html').setAttribute('dir', 'rtl');
+            var linkDefault = document.getElementById('style-default');
+            var userLinkDefault = document.getElementById('user-style-default');
+            linkDefault.setAttribute('disabled', true);
+            userLinkDefault.setAttribute('disabled', true);
+            document.querySelector('html').setAttribute('dir', 'rtl');
         } else {
-          var linkRTL = document.getElementById('style-rtl');
-          var userLinkRTL = document.getElementById('user-style-rtl');
-          linkRTL.setAttribute('disabled', true);
-          userLinkRTL.setAttribute('disabled', true);
+            var linkRTL = document.getElementById('style-rtl');
+            var userLinkRTL = document.getElementById('user-style-rtl');
+            linkRTL.setAttribute('disabled', true);
+            userLinkRTL.setAttribute('disabled', true);
         }
     </script>
+
+    <link href="{{ asset('assets/vendors/choices/choices.min.css') }}" rel="stylesheet" />
 
     <link href="{{ asset('assets/vendors/leaflet/leaflet.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendors/leaflet.markercluster/MarkerCluster.css') }}" rel="stylesheet">
@@ -103,43 +105,46 @@
     </script>
 
     <script type="text/javascript">
-      var gModalContactCallback = "";
+        var gModalContactCallback = "";
 
-      $(document).ready(function() {
-          toastr.options = {
-              "closeButton": true,
-              "debug": false,
-              "positionClass": "toast-top-full-width",
-              "onclick": null,
-              "showDuration": "15000",
-              "hideDuration": "15000",
-              "timeOut": "15000",
-              "extendedTimeOut": "15000",
-              "showEasing": "swing",
-              "hideEasing": "linear",
-              "showMethod": "slideDown",
-              "hideMethod": "slideUp"
-          }
-      });
+        $(document).ready(function() {
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "positionClass": "toast-top-full-width",
+                "onclick": null,
+                "showDuration": "15000",
+                "hideDuration": "15000",
+                "timeOut": "15000",
+                "extendedTimeOut": "15000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "slideDown",
+                "hideMethod": "slideUp"
+            }
+        });
     </script>
 
     @stack('style')
-  </head>
+</head>
 
 
-  <body>
+<body>
     <main class="main" id="top">
         @include('layouts.top-nav')
-        
+
         <div class="content">
             <div class="pb-5">
                 @yield('content')
             </div>
         </div>
     </main>
-    
-    
+
+
+
+
     <script src="{{ asset('assets/js/flatpickr.js') }}"></script>
+    <script src="{{ asset('assets/vendors/choices/choices.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/popper/popper.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/bootstrap/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/anchorjs/anchor.min.js') }}"></script>
@@ -153,5 +158,6 @@
     <script src="{{ asset('assets/js/phoenix.js') }}"></script>
 
     @stack('script')
-  </body>
+</body>
+
 </html>

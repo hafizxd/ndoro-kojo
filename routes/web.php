@@ -26,6 +26,7 @@ Route::get('excel', [ImportDBController::class, 'excel']);
 Route::get('excel-query', [ImportDBController::class, 'excelQuery']);
 Route::get('livestock-type', [ImportDBController::class, 'livestockType']);
 Route::get('livestock-code', [ImportDBController::class, 'generateTernakCode']);
+Route::get('livestock-pakan', [ImportDBController::class, 'pakan']);
 Route::get('province', [ImportDBController::class, 'province']);
 Route::get('regency', [ImportDBController::class, 'regency']);
 Route::get('district', [ImportDBController::class, 'district']);
@@ -70,7 +71,9 @@ Route::middleware('web.auth')->group(function () {
         Route::get('/report/detail/{urlType}/{livetockTypeId}', [LivestockController::class, 'reportDetail'])->name('livestock.report.detail');
         Route::get('/report/detail/{urlType}/{livetockTypeId}/export', [LivestockController::class, 'reportDetailExport'])->name('livestock.report.detail.export');
         Route::get('/', [LivestockController::class, 'index'])->name('livestock.index');
-        Route::post('/update', [LivestockController::class, 'updateStatus'])->name('livestock.update-status');
+        Route::post('/update', [LivestockController::class, 'update'])->name('livestock.update');
+        Route::post('/update-status', [LivestockController::class, 'updateStatus'])->name('livestock.update-status');
+        Route::post('/delete', [LivestockController::class, 'delete'])->name('livestock.delete');
     });
 
     Route::group(["prefix" => '/references', 'as' => 'reference.'], function () {
