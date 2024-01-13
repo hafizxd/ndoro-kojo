@@ -53,8 +53,9 @@ class LivestockController extends Controller
             'kandang.sensor_status' => 'required|in:TERPASANG,TIDAK TERPASANG',
             'livestock.pakan' => 'nullable',
             'livestock.limbah_id' => 'required|exists:limbah,id',
-            'livestock.age' => 'required|in:ANAK,DEWASA',
-            'livestock.type_id' => 'required|exists:livestock_types,id'
+            'livestock.age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
+            'livestock.type_id' => 'required|exists:livestock_types,id',
+            'livestock.gender' => 'nullable|in:JANTAN,BETINA'
         ]);
 
         if ($validator->fails()) {
@@ -118,9 +119,10 @@ class LivestockController extends Controller
             'status' => 'required|in:JUAL,BELI,LAHIR,INPUT,MATI',
             'pakan' => 'nullable',
             'limbah_id' => 'required|exists:limbah,id',
-            'age' => 'required|in:ANAK,DEWASA',
+            'age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
             'type_id' => 'required|exists:livestock_types,id',
-            'nominal' => 'nullable'
+            'nominal' => 'nullable',
+            'livestock.gender' => 'nullable|in:JANTAN,BETINA'
         ]);
 
         if ($validator->fails()) {
@@ -189,9 +191,10 @@ class LivestockController extends Controller
             'kandang_id' => 'required|exists:kandang,id',
             'pakan' => 'nullable',
             'limbah_id' => 'required|exists:limbah,id',
-            'age' => 'required|in:ANAK,DEWASA',
+            'age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
             'type_id' => 'required|exists:livestock_types,id',
-            'nominal' => 'nullable'
+            'nominal' => 'nullable',
+            'livestock.gender' => 'nullable|in:JANTAN,BETINA'
         ]);
 
         if ($validator->fails()) {
