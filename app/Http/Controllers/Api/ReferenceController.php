@@ -130,7 +130,14 @@ class ReferenceController extends Controller
                 $query->orderBy('created_at', 'desc');
             }
         ])
-            ->orderBy('article_order')->get();
+            ->orderBy('article_order')
+            ->get();
+
+        foreach ($res as $key => $value) {
+            foreach ($value->articles as $key2 => $value2) {
+                $res[$key]->articles[$key2]->slug = $value->slug;
+            }
+        }
 
         return response()->json([
             'success' => true,
