@@ -184,6 +184,8 @@ class SearchController extends Controller
             ->get();
 
         foreach ($articles as $keyArt => $article) {
+            $articles[$keyArt]->slug = $article->articleCategory->slug;
+
             if (isset($article->thumbnail)) {
                 $articles[$keyArt]->thumbnail = Storage::url('sliders/' . $article->thumbnail);
             }
