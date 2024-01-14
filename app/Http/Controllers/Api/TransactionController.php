@@ -226,7 +226,7 @@ class TransactionController extends Controller
                 foreach ($livestockBuy->items as $item) {
                     $livestock = $item->livestock;
 
-                    if (isset($livestock->sold_deal_price) || isset($livestock->sold_year)) {
+                    if (!empty($livestock->sold_deal_price) || !empty($livestock->sold_year)) {
                         DB::rollback();
 
                         return response()->json([
@@ -235,6 +235,14 @@ class TransactionController extends Controller
                             'payload' => []
                         ]);
                     }
+
+                    LivestockBuy::whereHas('items', function ($query) use ($item) {
+                        $query->where('livestock_id', $item->livestock_id);
+                    })
+                        ->where('buyer_id', '!=', $livestockBuy->buyer_id)
+                        ->where('seller_id', $livestockBuy->seller_id)
+                        ->where('status', 'MENUNGGU')
+                        ->update(['status' => 'DITOLAK']);
 
                     $item->livestock()->update([
                         'sold_deal_price' => $perPrice,
