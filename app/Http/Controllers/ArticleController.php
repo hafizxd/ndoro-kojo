@@ -11,7 +11,8 @@ use DataTables;
 
 class ArticleController extends Controller
 {
-    public function index($slug, Request $request) {
+    public function index($slug, Request $request)
+    {
         $articleCategory = ArticleCategory::whereSlug($slug)->firstOrFail();
 
         if ($request->ajax()) {
@@ -19,15 +20,15 @@ class ArticleController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('thumbnail', function($row){
-                    $str = '<img style="max-width: 100px;" src="'.asset('storage/sliders/'.$row->thumbnail).'" alt="thumbnail" />';
+                ->addColumn('thumbnail', function ($row) {
+                    $str = '<img style="max-width: 100px;" src="' . asset('storage/sliders/' . $row->thumbnail) . '" alt="thumbnail" />';
                     return $str;
                 })
-                ->addColumn('content', function($row){
+                ->addColumn('content', function ($row) {
                     $str = html_entity_decode($row->content);
                     return $str;
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $action = '
                         <script type="text/javascript">
                             var rowData_' . md5($row->id) . ' = {
@@ -39,8 +40,8 @@ class ArticleController extends Controller
                     ';
 
                     $action .= '
-                        <a href="javascript:editData(rowData_'.md5($row->id).')" class="edit btn btn-success btn-sm">Edit</a> 
-                        <a href="javascript:deleteData('.$row->id.')" class="delete btn btn-danger btn-sm">Delete</a>
+                        <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
+                        <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
                     ';
                     return $action;
                 })
@@ -51,7 +52,8 @@ class ArticleController extends Controller
         return view('sliders.index', compact('articleCategory'));
     }
 
-    public function store($slug, Request $request) {
+    public function store($slug, Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'thumbnail' => 'required|image',
@@ -71,7 +73,6 @@ class ArticleController extends Controller
         $filePath = $request->thumbnail->storeAs('sliders', $fileName, 'public');
 
         Article::create([
-            'type' => 'EVENT',
             'title' => $request->title,
             'thumbnail' => $fileName,
             'content' => $request->content,
@@ -85,10 +86,10 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function update(Request $request) {
+    public function update(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:articles',
-            'type' => 'required|in:EVENT,TODAY,FINANCE',
             'title' => 'required',
             'thumbnail' => 'nullable',
             'content' => 'required'
@@ -123,7 +124,8 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function delete(Request $request) {
+    public function delete(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:articles',
             'type' => 'required|in:EVENT,TODAY,FINANCE'
