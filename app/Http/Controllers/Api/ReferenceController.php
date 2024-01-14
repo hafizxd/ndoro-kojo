@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ReferenceController extends Controller
 {
-    public function provinceList() {
+    public function provinceList()
+    {
         $res = Province::orderBy('name', 'asc')->get();
 
         return response()->json([
@@ -26,8 +27,9 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function regencyList(Request $request) {
-        if (!isset($request->province_id))  {
+    public function regencyList(Request $request)
+    {
+        if (!isset($request->province_id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tambahkan province_id',
@@ -44,8 +46,9 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function districtList(Request $request) {
-        if (!isset($request->regency_id))  {
+    public function districtList(Request $request)
+    {
+        if (!isset($request->regency_id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tambahkan regency_id',
@@ -62,8 +65,9 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function villageList(Request $request) {
-        if (!isset($request->district_id))  {
+    public function villageList(Request $request)
+    {
+        if (!isset($request->district_id)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tambahkan district_id',
@@ -80,7 +84,8 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function pakanList() {
+    public function pakanList()
+    {
         $res = Pakan::orderBy('jenis_pakan', 'asc')->get();
 
         return response()->json([
@@ -90,7 +95,8 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function limbahList() {
+    public function limbahList()
+    {
         $res = Limbah::orderBy('pengolahan_limbah', 'asc')->get();
 
         return response()->json([
@@ -100,7 +106,8 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function livestockTypeList() {
+    public function livestockTypeList()
+    {
         $res = LivestockType::where('level', 1)->orderBy('livestock_type')->with('livestockChildren')->get();
 
         foreach ($res as $key => $value) {
@@ -116,8 +123,14 @@ class ReferenceController extends Controller
         ]);
     }
 
-    public function sliderCategoryList() {
-        $res = ArticleCategory::orderBy('article_order')->get();
+    public function sliderCategoryList()
+    {
+        $res = ArticleCategory::with([
+            'articles' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ])
+            ->orderBy('article_order')->get();
 
         return response()->json([
             'success' => true,
