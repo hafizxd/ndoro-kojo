@@ -76,11 +76,12 @@ class LivestockController extends Controller
 
         $kandang = Kandang::create($kandangReq);
 
-        $nominal = $request->livestock->nominal ?? 1;
+        $nominal = $reqArr['livestock']['nominal'] ?? 1;
 
         $livestock = null;
         for ($i = 0; $i < $nominal; $i++) {
             $livestockReq = $reqArr['livestock'];
+            unset($livestockReq['nominal']);
             $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
             $livestockReq['kandang_id'] = $kandang->id;
             $livestockReq['acquired_status'] = 'INPUT';
