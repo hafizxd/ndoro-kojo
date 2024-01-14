@@ -118,62 +118,62 @@ class SearchController extends Controller
 
 
         // REPORT PER KANDANG
-        $kandangs = Kandang::select('kandang.id', 'kandang.name', 'kandang.type_id')
-            ->where('farmer_id', Auth::user()->id)
-            ->where(function ($query) use ($search) {
-                $query
-                    ->where('name', 'LIKE', '%' . $search . '%')
-                    ->orWhereHas('livestockType', function ($query) use ($search) {
-                        $query->where('livestock_type', 'LIKE', '%' . $search . '%');
-                    })
-                    ->orWhereHas('livestocks', function ($query) use ($search) {
-                        $query->whereHas('livestockType', function ($query) use ($search) {
-                            $query->where('livestock_type', 'LIKE', '%' . $search . '%');
-                        });
-                    });
-            })
-            ->with('livestockType')
-            ->with('livestocks', function ($query) {
-                $query->select('id', 'dead_year', 'acquired_status', 'sold_proposed_price')
-                    ->with('livestockType');
-            })
-            ->orderBy('type_id')
-            ->get();
+        // $kandangs = Kandang::select('kandang.id', 'kandang.name', 'kandang.type_id')
+        //     ->where('farmer_id', Auth::user()->id)
+        //     ->where(function ($query) use ($search) {
+        //         $query
+        //             ->where('name', 'LIKE', '%' . $search . '%')
+        //             ->orWhereHas('livestockType', function ($query) use ($search) {
+        //                 $query->where('livestock_type', 'LIKE', '%' . $search . '%');
+        //             })
+        //             ->orWhereHas('livestocks', function ($query) use ($search) {
+        //                 $query->whereHas('livestockType', function ($query) use ($search) {
+        //                     $query->where('livestock_type', 'LIKE', '%' . $search . '%');
+        //                 });
+        //             });
+        //     })
+        //     ->with('livestockType')
+        //     ->with('livestocks', function ($query) {
+        //         $query->select('id', 'dead_year', 'acquired_status', 'sold_proposed_price')
+        //             ->with('livestockType');
+        //     })
+        //     ->orderBy('type_id')
+        //     ->get();
 
-        foreach ($kandangs as $key => $kandang) {
-            $total = 0;
-            $beli = 0;
-            $jual = 0;
-            $lahir = 0;
-            $mati = 0;
-            $available = 0;
+        // foreach ($kandangs as $key => $kandang) {
+        //     $total = 0;
+        //     $beli = 0;
+        //     $jual = 0;
+        //     $lahir = 0;
+        //     $mati = 0;
+        //     $available = 0;
 
-            foreach ($kandang->livestocks as $livestock) {
-                $total++;
+        //     foreach ($kandang->livestocks as $livestock) {
+        //         $total++;
 
-                if (empty($livestock->dead_year)) {
-                    if ($livestock->acquired_status == "BELI")
-                        $beli++;
-                    else if ($livestock->acquired_status == "LAHIR")
-                        $lahir++;
+        //         if (empty($livestock->dead_year)) {
+        //             if ($livestock->acquired_status == "BELI")
+        //                 $beli++;
+        //             else if ($livestock->acquired_status == "LAHIR")
+        //                 $lahir++;
 
-                    if (isset($livestock->sold_proposed_price))
-                        $jual++;
-                } else {
-                    $mati++;
-                }
-            }
+        //             if (isset($livestock->sold_proposed_price))
+        //                 $jual++;
+        //         } else {
+        //             $mati++;
+        //         }
+        //     }
 
-            $available = $total - $jual - $mati;
+        //     $available = $total - $jual - $mati;
 
-            $kandangs[$key]->statistic = (object) [
-                'total' => $total,
-                'beli' => $beli,
-                'jual' => $jual,
-                'mati' => $mati,
-                'available' => $available
-            ];
-        }
+        //     $kandangs[$key]->statistic = (object) [
+        //         'total' => $total,
+        //         'beli' => $beli,
+        //         'jual' => $jual,
+        //         'mati' => $mati,
+        //         'available' => $available
+        //     ];
+        // }
 
 
         // SLIDERS 
@@ -192,7 +192,6 @@ class SearchController extends Controller
 
         $res = (object) [
             'event' => $resultLivestock,
-            'kandang' => $kandangs,
             'sliders' => $articles,
         ];
 
