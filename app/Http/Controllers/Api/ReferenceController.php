@@ -136,6 +136,10 @@ class ReferenceController extends Controller
         foreach ($res as $key => $value) {
             foreach ($value->articles as $key2 => $value2) {
                 $res[$key]->articles[$key2]->slug = $value->slug;
+
+                if (isset($value2->thumbnail)) {
+                    $res[$key]->articles[$key2]->thumbnail = Storage::url('sliders/' . $value2->thumbnail);
+                }
             }
         }
 
