@@ -178,23 +178,14 @@ class SearchController extends Controller
 
         // SLIDERS 
         // brebes today
-        $articleCategories = ArticleCategory::whereHas('articles', function ($query) use ($search) {
-            $query->where('title', 'LIKE', '%' . $search . '%');
-        })
-            ->with([
-                'articles' => function ($query) use ($search) {
-                    $query->where('title', 'LIKE', '%' . $search . '%')
-                        ->orderBy('created_at', 'desc');
-                }
-            ])
-            ->orderBy('title')
+        $articles = Article::where('title', 'LIKE', '%' . $search . '%')
+            ->with('articleCategory')
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        foreach ($articleCategories as $keyCat => $value) {
-            foreach ($value->articles as $keyArt => $article) {
-                if (isset($article->thumbnail)) {
-                    $articleCategories[$keyCat]->articles[$keyArt]->thumbnail = Storage::url('sliders/' . $article->thumbnail);
-                }
+        foreach ($articles as $keyArt => $article) {
+            if (isset($article->thumbnail)) {
+                $articles[$keyArt]->thumbnail = Storage::url('sliders/' . $article->thumbnail);
             }
         }
 
@@ -202,7 +193,7 @@ class SearchController extends Controller
         $res = (object) [
             'event' => $resultLivestock,
             'kandang' => $kandangs,
-            'sliders' => $articleCategories,
+            'sliders' => $articles,
         ];
 
         return response()->json([
