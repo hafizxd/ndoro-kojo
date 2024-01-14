@@ -76,7 +76,7 @@ class LivestockController extends Controller
 
         $kandang = Kandang::create($kandangReq);
 
-        $nominal = $request->nominal ?? 1;
+        $nominal = $request->livestock->nominal ?? 1;
 
         $livestock = null;
         for ($i = 0; $i < $nominal; $i++) {
