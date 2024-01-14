@@ -55,7 +55,8 @@ class LivestockController extends Controller
             'livestock.limbah_id' => 'required|exists:limbah,id',
             'livestock.age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
             'livestock.type_id' => 'required|exists:livestock_types,id',
-            'livestock.gender' => 'nullable|in:JANTAN,BETINA'
+            'livestock.gender' => 'nullable|in:JANTAN,BETINA',
+            'livestock.nominal' => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -75,15 +76,20 @@ class LivestockController extends Controller
 
         $kandang = Kandang::create($kandangReq);
 
-        $livestockReq = $reqArr['livestock'];
-        $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
-        $livestockReq['kandang_id'] = $kandang->id;
-        $livestockReq['acquired_status'] = 'INPUT';
-        $livestockReq['acquired_year'] = date('Y');
-        $livestockReq['acquired_month'] = date('m');
-        $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
-        $livestockReq['availability'] = 'TERSEDIA';
-        $livestock = Livestock::create($livestockReq);
+        $nominal = $request->nominal ?? 1;
+
+        $livestock = null;
+        for ($i = 0; $i < $nominal; $i++) {
+            $livestockReq = $reqArr['livestock'];
+            $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
+            $livestockReq['kandang_id'] = $kandang->id;
+            $livestockReq['acquired_status'] = 'INPUT';
+            $livestockReq['acquired_year'] = date('Y');
+            $livestockReq['acquired_month'] = date('m');
+            $livestockReq['acquired_month_name'] = strtoupper(Carbon::now()->locale('id')->isoFormat('MMMM'));
+            $livestockReq['availability'] = 'TERSEDIA';
+            $livestock = Livestock::create($livestockReq);
+        }
 
         $sensorReq = $reqArr['kandang']['sensor'];
         $sensorReq['kandang_id'] = $kandang->id;
