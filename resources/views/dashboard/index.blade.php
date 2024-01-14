@@ -32,9 +32,9 @@
                 </div>
             </form>
             <div class="d-flex mb-5">
-                <div class="justify-content-end">
+                {{-- <div class="justify-content-end">
                     <a href="{{ route('report.export') }}" target="_blank" class="btn btn-primary" type="button">Download Report</a>
-                </div>
+                </div> --}}
             </div>
 
             <div class="row g-3 mb-5">
