@@ -246,7 +246,6 @@
 
             function deleteData(id) {
                 var formData = new FormData();
-                formData.append('type', 'TODAY');
                 formData.append('id', id);
 
                 createOverlay("Proses...");

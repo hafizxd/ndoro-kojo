@@ -127,8 +127,7 @@ class ArticleController extends Controller
     public function delete(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:articles',
-            'type' => 'required|in:EVENT,TODAY,FINANCE'
+            'id' => 'required|exists:articles'
         ]);
 
         if ($validator->fails()) {
@@ -138,7 +137,7 @@ class ArticleController extends Controller
             ]);
         }
 
-        $article = Article::where('type', $request->type)->findOrFail($request->id);
+        $article = Article::findOrFail($request->id);
         $article->delete();
 
         return response()->json([
