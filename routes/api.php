@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SliderController;
 use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::get('profile', [AuthController::class, 'profile']);
     Route::put('profile', [AuthController::class, 'update']);
+
+    Route::get('notifications/negotiate-status', [NotificationController::class, 'indexNegotiateStatus']);
 
     Route::group(["prefix" => '/search'], function () {
         Route::get('/', [SearchController::class, 'index']);

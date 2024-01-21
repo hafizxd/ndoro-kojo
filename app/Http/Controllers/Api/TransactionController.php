@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use App\Models\Livestock;
 use App\Models\LivestockBuy;
 use Carbon\Carbon;
+use App\Models\Farmer;
+use App\Notifications\NegotiateStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -208,7 +210,7 @@ class TransactionController extends Controller
 
     public function updateProposal(Request $request, $id)
     {
-        $livestockBuy = LivestockBuy::where('seller_id', Auth::user()->id)->findOrFail($id);
+        $livestockBuy = LivestockBuy::with('items.livestock')->where('seller_id', Auth::user()->id)->findOrFail($id);
         if ($livestockBuy->status !== "MENUNGGU") {
             return response()->json([
                 'success' => false,
@@ -216,6 +218,8 @@ class TransactionController extends Controller
                 'payload' => []
             ], 400);
         }
+
+        $buyer = Farmer::findOrFail($livestockBuy->buyer_id);
 
         DB::beginTransaction();
 
@@ -269,6 +273,8 @@ class TransactionController extends Controller
                     ]);
                 }
             }
+
+            $buyer->notify(new NegotiateStatus($request, $livestockBuy->items, Auth::user()));
 
             $livestockBuy->update([
                 'status' => $request->status,
