@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -26,35 +27,40 @@ class FarmerController extends Controller
                     return $row->village?->name;
                 })
                 ->addColumn('action', function($row){
-                    $action = '
-                        <script type="text/javascript">
-                            var rowData_' . md5($row->id) . ' = {
-                                "id" : "' . $row->id . '",
-                                "fullname" : "' . $row->fullname . '",
-                                "username" : "' . $row->username . '",
-                                "email" : "' . $row->email . '",
-                                "phone" : "' . $row->phone . '",
-                                "address" : "' . $row->address . '",
-                                "occupation" : "' . $row->occupation . '",
-                                "gender" : "' . $row->gender . '",
-                                "age" : "' . $row->age . '",
-                                "kelompok_ternak" : "' . $row->kelompok_ternak . '",
-                                "province_id" : "' . $row->province_id . '",
-                                "province_name" : "' . $row->province?->name . '",
-                                "regency_id" : "' . $row->regency_id . '",
-                                "regency_name" : "' . $row->regency?->name . '",
-                                "district_id" : "' . $row->district_id . '",
-                                "district_name" : "' . $row->district?->name . '",
-                                "village_id" : "' . $row->village_id . '",
-                                "village_name" : "' . $row->village?->name . '",
-                            };
-                        </script>
-                    ';
-
-                    $action .= '
-                        <a href="javascript:editData(rowData_'.md5($row->id).')" class="edit btn btn-success btn-sm">Edit</a> 
-                        <a href="javascript:deleteData('.$row->id.')" class="delete btn btn-danger btn-sm">Delete</a>
-                    ';
+                    $action = '-';
+                    
+                    if (Auth::guard('web')->check()) {
+                        $action = '
+                            <script type="text/javascript">
+                                var rowData_' . md5($row->id) . ' = {
+                                    "id" : "' . $row->id . '",
+                                    "fullname" : "' . $row->fullname . '",
+                                    "username" : "' . $row->username . '",
+                                    "email" : "' . $row->email . '",
+                                    "phone" : "' . $row->phone . '",
+                                    "address" : "' . $row->address . '",
+                                    "occupation" : "' . $row->occupation . '",
+                                    "gender" : "' . $row->gender . '",
+                                    "age" : "' . $row->age . '",
+                                    "kelompok_ternak" : "' . $row->kelompok_ternak . '",
+                                    "province_id" : "' . $row->province_id . '",
+                                    "province_name" : "' . $row->province?->name . '",
+                                    "regency_id" : "' . $row->regency_id . '",
+                                    "regency_name" : "' . $row->regency?->name . '",
+                                    "district_id" : "' . $row->district_id . '",
+                                    "district_name" : "' . $row->district?->name . '",
+                                    "village_id" : "' . $row->village_id . '",
+                                    "village_name" : "' . $row->village?->name . '",
+                                };
+                            </script>
+                        ';
+                    
+                        $action .= '
+                            <a href="javascript:editData(rowData_'.md5($row->id).')" class="edit btn btn-success btn-sm">Edit</a> 
+                            <a href="javascript:deleteData('.$row->id.')" class="delete btn btn-danger btn-sm">Delete</a>
+                        ';
+                    } 
+                    
                     return $action;
                 })
                 ->rawColumns(['district', 'village', 'action'])

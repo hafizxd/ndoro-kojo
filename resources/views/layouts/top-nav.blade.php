@@ -38,26 +38,28 @@
         <a class="nav-link lh-1 @if(Request::routeIs('farmer.index')) bg-primary-100 text-primary @endif" href="{{ route('farmer.index') }}"><span class="uil fs-0 me-2 uil-users-alt"></span>Manajemen User</a>
       </li>
 
-      <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1 @if(Request::routeIs('slider.*')) bg-primary-100 text-primary @endif" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
-        <ul class="dropdown-menu navbar-dropdown-caret">
-          <li><a class="dropdown-item @if(Request::routeIs('slider.category.index')) bg-primary-100 text-primary @endif" href="{{ route('slider.category.index') }}">
-              <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>Manajemen Slider
-              </div>
-            </a>
-          </li>
-
-          @php
-            $categories = \App\Models\ArticleCategory::all();
-          @endphp
-          @foreach ($categories as $value)
-            <li><a class="dropdown-item @if(Request::is('sliders/'.$value->slug)) bg-primary-100 text-primary @endif" href="{{ route('slider.index', $value->slug) }}">
-                <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>{{ $value->title }}
+      @auth('web')
+        <li class="nav-item dropdown"><a class="nav-link dropdown-toggle lh-1 @if(Request::routeIs('slider.*')) bg-primary-100 text-primary @endif" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"><span class="uil fs-0 me-2 uil-postcard"></span>Sliders</a>
+          <ul class="dropdown-menu navbar-dropdown-caret">
+            <li><a class="dropdown-item @if(Request::routeIs('slider.category.index')) bg-primary-100 text-primary @endif" href="{{ route('slider.category.index') }}">
+                <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>Manajemen Slider
                 </div>
               </a>
             </li>
-          @endforeach
-        </ul>
-      </li>
+
+            @php
+              $categories = \App\Models\ArticleCategory::all();
+            @endphp
+            @foreach ($categories as $value)
+              <li><a class="dropdown-item @if(Request::is('sliders/'.$value->slug)) bg-primary-100 text-primary @endif" href="{{ route('slider.index', $value->slug) }}">
+                  <div class="dropdown-item-wrapper"><span class="me-2 uil uil-postcard"></span>{{ $value->title }}
+                  </div>
+                </a>
+              </li>
+            @endforeach
+          </ul>
+        </li>
+      @endauth
     </ul>
   </div>
   <ul class="navbar-nav navbar-nav-icons flex-row">
@@ -68,6 +70,7 @@
         <label class="mb-0 theme-control-toggle-label theme-control-toggle-dark" for="themeControlToggle" data-bs-toggle="tooltip" data-bs-placement="left" title="Switch theme"><span class="icon" data-feather="sun"></span></label>
       </div>
     </li>
+    @auth('web')
     <li class="nav-item dropdown"><a class="nav-link lh-1 pe-0" id="navbarDropdownUser" href="#!" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
         <div class="avatar avatar-l ">
           <img class="rounded-circle " src="{{ asset('assets/img/team/avatar.webp') }}" alt="" />
@@ -97,5 +100,10 @@
         </div>
       </div>
     </li>
+    @else
+    <li class="nav-item">
+      <a href="{{ route('login') }}" type="button" class="btn btn-primary">Masuk</a>
+    </li>
+    @endauth
   </ul>
 </nav>

@@ -12,11 +12,13 @@
             <div class="card shadow-none border border-300 my-5" data-component-card="data-component-card">
                 <div class="card-body p-0">
                     <div class="p-4">
+                        @auth('web')
                         <div class="d-flex mb-5">
                             <div class="justify-content-end">
                                 <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createModal">Tambah User</button>
                             </div>
                         </div>
+                        @endauth
 
                         <table class="table data-table">
                             <thead>
@@ -36,6 +38,7 @@
             </div>
         </div>
 
+        @auth('web')
         <div class="modal modal-lg fade" id="createModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
               <div class="modal-content">
@@ -239,6 +242,7 @@
               </div>
             </div>
         </div>
+        @endauth
     @endsection
 
     @push('script')

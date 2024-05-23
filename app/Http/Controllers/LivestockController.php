@@ -6,6 +6,7 @@ use App\Models\Province;
 use Excel;
 use Illuminate\Support\Facades\Validator;
 use App\Exports\LivestockReportExport;
+use Illuminate\Support\Facades\Auth;
 use App\Models\LivestockType;
 use Illuminate\Http\Request;
 use App\Models\Livestock;
@@ -47,12 +48,17 @@ class LivestockController extends Controller
                     }
 
                     $statusArr = ['LAHIR', 'MATI', 'JUAL', 'BELI'];
-                    $select = "<select class='form-control' id='status" . $row->id . "'>";
 
-                    foreach ($statusArr as $value) {
-                        $select .= "<option value='" . $value . "' " . ($value == $res ? "selected" : "") . ">" . $value . "</option>";
+                    $select = $res;
+
+                    if (Auth::guard('web')->check()) {
+                        $select = "<select class='form-control' id='status" . $row->id . "'>";
+
+                        foreach ($statusArr as $value) {
+                            $select .= "<option value='" . $value . "' " . ($value == $res ? "selected" : "") . ">" . $value . "</option>";
+                        }
+                        $select .= "</select>";
                     }
-                    $select .= "</select>";
 
                     return $select;
                 })
@@ -81,30 +87,34 @@ class LivestockController extends Controller
                     return $row->kandang?->village?->name;
                 })
                 ->addColumn('action', function ($row) {
-                    $month = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
-                    $year = isset($row->dead_year) ? $row->dead_year : $row->acquired_year;
+                    $action = '-';
 
-                    $action = '
-                        <script type="text/javascript">
-                            var rowData_' . md5($row->id) . ' = {
-                                "id" : "' . $row->id . '",
-                                "code" : "' . $row->code . '",
-                                "livestock_type_kandang" : "' . $row->kandang?->livestockType?->livestock_type . '",
-                                "pakan" : "' . $row->pakan . '",
-                                "limbah_id" : "' . $row->limbah_id . '",
-                                "age" : "' . $row->age . '",
-                                "gender" : "' . $row->gender . '",
-                                "month" : "' . $month . '",
-                                "year" : "' . $year . '"
-                            };
-                        </script>
-                    ';
+                    if (Auth::guard('web')->check()) {
+                        $month = isset($row->dead_year) ? $row->dead_month : $row->acquired_month;
+                        $year = isset($row->dead_year) ? $row->dead_year : $row->acquired_year;
 
-                    $action .= '
-                        <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
-                        <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
-                        <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
-                    ';
+                        $action = '
+                            <script type="text/javascript">
+                                var rowData_' . md5($row->id) . ' = {
+                                    "id" : "' . $row->id . '",
+                                    "code" : "' . $row->code . '",
+                                    "livestock_type_kandang" : "' . $row->kandang?->livestockType?->livestock_type . '",
+                                    "pakan" : "' . $row->pakan . '",
+                                    "limbah_id" : "' . $row->limbah_id . '",
+                                    "age" : "' . $row->age . '",
+                                    "gender" : "' . $row->gender . '",
+                                    "month" : "' . $month . '",
+                                    "year" : "' . $year . '"
+                                };
+                            </script>
+                        ';
+
+                        $action .= '
+                            <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
+                            <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
+                            <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
+                        ';
+                    }
 
                     return $action;
                 })
@@ -519,7 +529,7 @@ class LivestockController extends Controller
                     else
                         $res = $row->acquired_month;
 
-                    if (isset($res))
+                    if (!empty($res))
                         $res = \Carbon\Carbon::createFromFormat('m', $res)->locale('id')->isoFormat('MMMM');
                     else
                         $res = '';
