@@ -2,11 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\UserRole;
+use App\Exports\LivestockReportMutationExport;
+use App\Exports\LivestockReportDeadExport;
+use App\Models\District;
+use App\Models\Farmer;
+use App\Models\Kandang;
 use App\Models\Province;
+use App\Models\Regency;
+use App\Models\Village;
+use Carbon\Carbon;
 use Excel;
 use Illuminate\Support\Facades\Validator;
 use App\Exports\LivestockReportExport;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\LivestockType;
 use Illuminate\Http\Request;
 use App\Models\Livestock;
@@ -18,14 +28,32 @@ class LivestockController extends Controller
     public function index(Request $request)
     {
         $limbah = Limbah::all();
+        $farmers = Farmer::select('id', 'fullname')->withWhereHas('kandangs', function ($query) {
+                if (auth('web')->check() && auth('web')->user()->role == UserRole::OPERATOR){
+                    $query->where('district_id', auth('web')->user()->district_id);
+                }
+                $query->orderBy('name');
+            })
+            ->orderBy('fullname')
+            ->get();
+        $livestockTypes = LivestockType::doesntHave('livestockChildren')->orWhere('level', 2)->get();
 
         if ($request->ajax()) {
-            $data = Livestock::select('*')
-                ->has('kandang.livestockType')
-                ->with('kandang', function ($query) {
-                    $query->with(['farmer', 'livestockType', 'province', 'district', 'district', 'village']);
-                })
-                ->with(['limbah', 'livestockType']);
+            $data = Livestock::select('*');
+            
+            if (auth('web')->user() && auth('web')->user()->role == UserRole::OPERATOR && isset(auth('web')->user()->district)) {
+                $data->withWhereHas('kandang', function ($query) {
+                    $query->where('district_id', auth('web')->user()->district_id)
+                        ->with(['livestockType', 'farmer', 'livestockType', 'province', 'district', 'district', 'village']);
+                });
+            } else {
+                $data->has('kandang.livestockType')
+                    ->with('kandang', function ($query) {
+                        $query->with(['farmer', 'livestockType', 'province', 'district', 'district', 'village']);
+                    });
+            }
+                
+            $data = $data->with(['limbah', 'livestockType']);
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -40,14 +68,20 @@ class LivestockController extends Controller
                 })
                 ->addColumn('status', function ($row) {
                     if (isset($row->dead_year)) {
-                        $res = 'MATI';
+                        $res = 'MATI - ';
+
+                        if (isset($row->dead_reason_2)) {
+                            $res .= $row->dead_reason_2;
+                        } else {
+                            $res .= 'PENYAKIT';
+                        }
                     } else if (isset($row->sold_deal_price)) {
                         $res = 'JUAL';
                     } else {
                         $res = $row->acquired_status;
                     }
 
-                    $statusArr = ['LAHIR', 'MATI', 'JUAL', 'BELI'];
+                    $statusArr = ['LAHIR', 'MATI - PENYAKIT', 'MATI - DIPOTONG', 'MATI - BENCANA', 'JUAL', 'BELI'];
 
                     $select = $res;
 
@@ -109,11 +143,22 @@ class LivestockController extends Controller
                             </script>
                         ';
 
-                        $action .= '
-                            <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
-                            <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
-                            <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
-                        ';
+                        if (auth('web')->user()->role == UserRole::OPERATOR) {
+                            if ($row->kandang?->district_id == auth('web')->user()->district_id) {
+                                $action .= '
+                                    <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
+                                    <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a>
+                                ';    
+                            } else {
+                                $action .= '-';
+                            }
+                        } else {
+                            $action .= '
+                                <a href="javascript:saveData(' . $row->id . ')" class="edit btn btn-primary btn-sm">Simpan</a>
+                                <a href="javascript:editData(rowData_' . md5($row->id) . ')" class="edit btn btn-success btn-sm">Edit</a> 
+                                <a href="javascript:deleteData(' . $row->id . ')" class="delete btn btn-danger btn-sm">Delete</a>
+                            ';
+                        }
                     }
 
                     return $action;
@@ -122,7 +167,65 @@ class LivestockController extends Controller
                 ->make(true);
         }
 
-        return view('livestocks.index', compact('limbah'));
+        return view('livestocks.index', compact('limbah', 'farmers', 'livestockTypes'));
+    }
+
+    public function store(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'kandang_id' => 'required|exists:kandang,id',
+            'pakan' => 'nullable',
+            'limbah_id' => 'required|exists:limbah,id',
+            'age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
+            'type_id' => 'required|exists:livestock_types,id',
+            'nominal' => 'nullable',
+            'gender' => 'nullable',
+            'acquired_month' => 'required',
+            'acquired_year' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation fails.',
+                'payload' => [
+                    'errors' => $validator->errors()
+                ]
+            ], 422);
+        }
+
+        // validate kandang
+        $isKandangExists = Kandang::has('farmer')->where('id', $request->kandang_id)->exists();
+        if (!$isKandangExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kandang not found',
+                'payload' => []
+            ]);
+        }
+
+
+        $livestockReq = $request->toArray();
+        $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
+        $livestockReq['acquired_status'] = "INPUT";
+        $livestockReq['acquired_month_name'] = strtoupper(Carbon::createFromFormat('m', $request->acquired_month)->locale('id')->isoFormat('MMMM'));
+
+        $livestock = Livestock::create($livestockReq);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Success'
+        ]);
+    }
+
+    function generateRandomCode($prefix, $table, $column)
+    {
+        $rand = $prefix . "_" . mt_rand(1000000000, 9999999999);
+
+        $data = DB::table($table)->select('id')->where($column, $rand)->first();
+        if (isset($data))
+            return generateRandomCode($prefix, $table, $column);
+
+        return $rand;
     }
 
     public function update(Request $request)
@@ -211,11 +314,15 @@ class LivestockController extends Controller
         $month = date('m');
         $monthName = \Carbon\Carbon::createFromFormat('m', $month)->locale('id')->isoFormat('MMMM');
 
-        if ($request->status == 'MATI') {
+        if (substr($request->status, 0, 4) == 'MATI') {
+            $statusArr = explode(' - ', $request->status);
+            $deadReason2 = $statusArr[1] ?? null;
+
             $livestock->update([
                 'dead_year' => $year,
                 'dead_month' => $month,
-                'dead_month_name' => $monthName
+                'dead_month_name' => $monthName,
+                'dead_reason_2' => $deadReason2
             ]);
         } else if ($request->status == 'JUAL') {
             $livestock->update([
@@ -251,12 +358,32 @@ class LivestockController extends Controller
     {
         $provinces = Province::all();
 
+        $selectedRegency = isset($request->regency_id) ? Regency::find($request->regency_id) : (object)[];
+        $selectedDistrict = isset($request->district_id) ? District::find($request->district_id) : (object)[];
+        $selectedVillage = isset($request->village_id) ? Village::find($request->village_id) : (object)[];
+
         $dateStart = null;
-        $dateEnd = null;
-        if (isset($request->daterange)) {
-            $dateExp = explode(' to ', $request->daterange);
-            $dateStart = $dateExp[0];
-            $dateEnd = $dateExp[1];
+        $dateEnd = Carbon::now()->isoFormat('DD/MM/YYYY');
+        // if (isset($request->daterange)) {
+        //     $dateExp = explode(' to ', $request->daterange);
+        //     $dateStart = $dateExp[0];
+        //     $dateEnd = $dateExp[1];
+        // }
+        if (isset($request->year)) {
+            if (isset($request->from_month)) {
+                $dateStart = Carbon::createFromFormat('d-m-Y', '01-'.$request->from_month.'-'.$request->year);
+            } else {
+                $dateStart = Carbon::createFromFormat('d-m-Y', '01-01-'.$request->year);
+            }
+
+            if (isset($request->to_month)) {
+                $dateEnd = Carbon::createFromFormat('d-m-Y', '01-'.$request->to_month.'-'.$request->year)->endOfMonth();
+            } else {
+                $dateEnd = Carbon::now();
+            }
+
+            $dateStart = $dateStart->isoFormat('DD/MM/YYYY');
+            $dateEnd = $dateEnd->isoFormat('DD/MM/YYYY');
         }
 
         $livestockTypes = LivestockType::where('level', 1)
@@ -404,7 +531,7 @@ class LivestockController extends Controller
             $livestockTypes[$key]->children = $livestockTypeChildren;
         }
 
-        return view('livestocks.reports.livestock-type', compact('provinces', 'livestockTypes', 'dateStart', 'dateEnd'));
+        return view('livestocks.reports.livestock-type', compact('provinces', 'livestockTypes', 'dateStart', 'dateEnd', 'selectedRegency', 'selectedDistrict', 'selectedVillage'));
     }
 
     public function reportDetail($urlType, $livestockTypeId, Request $request)
@@ -569,6 +696,16 @@ class LivestockController extends Controller
     public function reportDetailExport($urlType, $livestockTypeId, Request $request)
     {
         return Excel::download(new LivestockReportExport($urlType, $livestockTypeId, $request), 'livestock_report_' . time() . '.xlsx');
+    }
+
+    public function reportExportMutation(Request $request) 
+    {
+        return Excel::download(new LivestockReportMutationExport($request), 'livestock_mutation_report_' . time() . '.xlsx');
+    }
+
+    public function reportExportDead(Request $request) 
+    {
+        return Excel::download(new LivestockReportDeadExport($request), 'livestock_dead_report_' . time() . '.xlsx');
     }
 
     // function reportDetailTransaksi($urlType, $livestockType, $request) {

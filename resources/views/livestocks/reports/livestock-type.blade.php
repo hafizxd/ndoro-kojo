@@ -25,7 +25,7 @@
             <form action="">
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="row">
+                        {{-- <div class="row">
                             <input type="hidden" name="daterange">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -37,7 +37,57 @@
                                 <button class="btn btn-secondary" type="button" onClick="clearFilterDate()">Clear</button>
                                 <button class="btn btn-primary" type="submit">Filter</button>
                             </div>
+                        </div> --}}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="timepicker2">Tahun</label>
+                                <select id="year" name="year" class="form-control">
+                                    <option value="" selected>-- PILIH --</option>
+                                    @php $year = date('Y'); @endphp
+                                    @for($i = 0; $i < 10; $i++)
+                                        <option value="{{ $year-$i }}" @if(request()->query('year') == $year-$i) selected @endif>{{ $year-$i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="timepicker2">Dari Bulan</label>
+                                <select id="from_month" name="from_month" class="form-control">
+                                    <option value="" selected>-- PILIH --</option>
+                                    <option value="01" @if(request()->query('from_month') == "01") selected @endif>JANUARI</option>
+                                    <option value="02" @if(request()->query('from_month') == "02") selected @endif>FEBRUARI</option>
+                                    <option value="03" @if(request()->query('from_month') == "03") selected @endif>MARET</option>
+                                    <option value="04" @if(request()->query('from_month') == "04") selected @endif>APRIL</option>
+                                    <option value="05" @if(request()->query('from_month') == "05") selected @endif>MEI</option>
+                                    <option value="06" @if(request()->query('from_month') == "06") selected @endif>JUNI</option>
+                                    <option value="07" @if(request()->query('from_month') == "07") selected @endif>JULI</option>
+                                    <option value="08" @if(request()->query('from_month') == "08") selected @endif>AGUSTUS</option>
+                                    <option value="09" @if(request()->query('from_month') == "09") selected @endif>SEPTEMBER</option>
+                                    <option value="10" @if(request()->query('from_month') == "10") selected @endif>OKTOBER</option>
+                                    <option value="11" @if(request()->query('from_month') == "11") selected @endif>NOVEMBER</option>
+                                    <option value="12" @if(request()->query('from_month') == "12") selected @endif>DESEMBER</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="timepicker2">Sampai Bulan</label>
+                                <select id="to_month" name="to_month" class="form-control">
+                                    <option value="" selected>-- PILIH --</option>
+                                    <option value="01" @if(request()->query('to_month') == "01") selected @endif>JANUARI</option>
+                                    <option value="02" @if(request()->query('to_month') == "02") selected @endif>FEBRUARI</option>
+                                    <option value="03" @if(request()->query('to_month') == "03") selected @endif>MARET</option>
+                                    <option value="04" @if(request()->query('to_month') == "04") selected @endif>APRIL</option>
+                                    <option value="05" @if(request()->query('to_month') == "05") selected @endif>MEI</option>
+                                    <option value="06" @if(request()->query('to_month') == "06") selected @endif>JUNI</option>
+                                    <option value="07" @if(request()->query('to_month') == "07") selected @endif>JULI</option>
+                                    <option value="08" @if(request()->query('to_month') == "08") selected @endif>AGUSTUS</option>
+                                    <option value="09" @if(request()->query('to_month') == "09") selected @endif>SEPTEMBER</option>
+                                    <option value="10" @if(request()->query('to_month') == "10") selected @endif>OKTOBER</option>
+                                    <option value="11" @if(request()->query('to_month') == "11") selected @endif>NOVEMBER</option>
+                                    <option value="12" @if(request()->query('to_month') == "12") selected @endif>DESEMBER</option>
+                                </select>
+                            </div>
                         </div>
+
+
                     </div>
 
                     <div class="col-md-6">
@@ -47,26 +97,26 @@
                                 <select class="form-control" id="province" name="province_id" type="text" placeholder="Pilih provinsi">
                                     <option value="" selected>-- PILIH --</option>
                                     @foreach ($provinces as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                        <option value="{{ $value->id }}" @if(request()->query('province_id') == $value->id) selected @endif>{{ $value->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="regency">Kabupaten / Kota</label>
                                 <select class="form-control" id="regency" name="regency_id" type="text" placeholder="Pilih Kabupaten / Kota">
-                                    <option value="" disabled selected></option>
+                                    <option value="{{ $selectedRegency->id ?? '' }}">{{ $selectedRegency?->name ?? '' }}</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="district">Kecamatan</label>
                                 <select class="form-control" id="district" name="district_id" type="text" placeholder="Pilih Kecamatan">
-                                    <option value="" disabled selected></option>
+                                    <option value="{{ $selectedDistrict->id ?? '' }}">{{ $selectedDistrict?->name ?? '' }}</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="village">Kelurahan / Desa</label>
                                 <select class="form-control" id="village" name="village_id" type="text" placeholder="Pilih Kelurahan / Desa">
-                                    <option value="" disabled selected></option>
+                                    <option value="{{ $selectedVillage->id ?? '' }}">{{ $selectedVillage?->name ?? '' }}</option>
                                 </select>
                             </div>
                             <div class="d-flex justify-content-end gap-3 mt-2">
@@ -81,6 +131,29 @@
             <div class="card shadow-none border border-300 my-5" data-component-card="data-component-card">
                 <div class="card-body p-0">
                     <div class="p-4">
+                        <div class="d-flex mb-5">
+                            <div class="justify-content-end">
+                                @php 
+                                    $isMutasiDisabled = true;
+                                    if (request()->query('year') && request()->query('from_month')) {
+                                        $isMutasiDisabled = false;
+                                    }
+                                @endphp
+
+                                <a target="_blank" href="{{ route('livestock.report.mutation.export', [
+                                    'year' => request()->query('year'), 
+                                    'from_month' => request()->query('from_month'), 
+                                    'to_month' => request()->query('to_month'), 
+                                    'province_id' => request()->query('province_id'), 
+                                    'regency_id' => request()->query('regency_id'), 
+                                    'district_id' => request()->query('district_id'), 
+                                    'village_id' => request()->query('village_id') 
+                                ]) }}" class="btn btn-primary {{ $isMutasiDisabled ? 'disabled' : '' }}" type="button">Download Mutasi</a>
+
+                                <a target="_blank" href="{{ route('livestock.report.dead.export') }}" class="btn btn-primary" type="button">Download Penyebab Kematian</a>
+                            </div>
+                        </div>
+
                         <table class="table">
                             <thead>
                                 <tr>
@@ -172,6 +245,9 @@
             }
 
             function clearFilterRegion() {
+                $('#year').val('')
+                $('#from_month').val('')
+                $('#to_month').val('')
                 $('#village').val('')
                 $('#village').html('')
                 $('#district').val('')

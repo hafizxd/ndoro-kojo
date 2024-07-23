@@ -17,6 +17,10 @@ class LivestockType extends Model
         return $this->hasMany(LivestockType::class, 'parent_type_id');
     }
 
+    public function livestockParent() {
+        return $this->belongsTo(LivestockType::class, 'parent_type_id');
+    }
+
     public function kandang() {
         return $this->hasMany(Kandang::class, 'type_id');
     }

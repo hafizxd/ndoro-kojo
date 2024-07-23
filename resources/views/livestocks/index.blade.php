@@ -12,11 +12,11 @@
             <div class="card shadow-none border border-300 my-5" data-component-card="data-component-card">
                 <div class="card-body p-0">
                     <div class="p-4">
-                        {{-- <div class="d-flex mb-5">
+                        <div class="d-flex mb-5">
                             <div class="justify-content-end">
-                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createModal">Tambah User</button>
+                                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createModal">Tambah Ternak</button>
                             </div>
-                        </div> --}}
+                        </div>
 
                         <div class="table-responsive scrollbar">
                             <table class="table data-table">
@@ -42,6 +42,114 @@
                                 </thead>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal-xl fade" id="createModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Tambah Ternak</h5>
+                        <button class="btn p-1" type="button" data-bs-dismiss="modal" aria-label="Close"><span class="fas fa-times fs--1"></span></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="#" method="POST">
+                            <div class="row flex-center">
+                                <div class="col-sm-12">
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Peternak - Kandang</label>
+                                        <div class="form-icon-container">
+                                            <select class="select form-control" id="kandang_id">
+                                                <option value="" disabled selected>Pilih Peternak - Kandang</option>
+                                                @foreach($farmers as $farmer)
+                                                    @foreach ($farmer->kandangs as $value)
+                                                        <option value="{{ $value->id }}">{{ $farmer->fullname ?? $farmer->code }} - {{ $value->name }}</option>
+                                                    @endforeach
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Tipe Ternak</label>
+                                        <div class="form-icon-container">
+                                            <select id="livestock_type_id" class="form-control">
+                                                @foreach ($livestockTypes as $value)
+                                                    <option value="{{ $value->id }}">@if($value->level == 2) {{ $value->livestockParent?->livestock_type . ' - ' }} @endif {{ $value->livestock_type }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Pakan</label>
+                                        <div class="form-icon-container">
+                                            <select multiple class="form-select pakan" size="1" id="pakan" required="required"></select>
+                                            <div class="invalid-feedback">Pilih minimal satu pakan</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Limbah</label>
+                                        <div class="form-icon-container">
+                                            <select id="limbah_id" class="form-control">
+                                                @foreach ($limbah as $value)
+                                                    <option value="{{ $value->id }}">{{ $value->pengolahan_limbah }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Umur</label>
+                                        <div class="form-icon-container">
+                                            <select id="age" class="form-control">
+                                                <option value="ANAK">ANAK</option>
+                                                <option value="MUDA">MUDA</option>
+                                                <option value="DEWASA">DEWASA</option>
+                                                <option value="BIBIT">BIBIT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Jenis Kelamin</label>
+                                        <div class="form-icon-container">
+                                            <select id="gender" class="form-control">
+                                                <option value="INDUK">INDUK</option>
+                                                <option value="PEJANTAN">PEJANTAN</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Bulan</label>
+                                        <div class="form-icon-container">
+                                            <select id="month" class="form-control">
+                                                <option value="01">JANUARI</option>
+                                                <option value="02">FEBRUARI</option>
+                                                <option value="03">MARET</option>
+                                                <option value="04">APRIL</option>
+                                                <option value="05">MEI</option>
+                                                <option value="06">JUNI</option>
+                                                <option value="07">JULI</option>
+                                                <option value="08">AGUSTUS</option>
+                                                <option value="09">SEPTEMBER</option>
+                                                <option value="10">OKTOBER</option>
+                                                <option value="11">NOVEMBER</option>
+                                                <option value="12">DESEMBER</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 text-start">
+                                        <label class="form-label" for="email">Tahun</label>
+                                        <div class="form-icon-container">
+                                            <input class="form-control" id="year" type="number" placeholder="Tahun" min="1000" max="9999" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="button" onClick="storeData()">Save</button>
+                        <button class="btn btn-outline-primary" type="button" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -149,18 +257,117 @@
 
     @push('script')
         <script>
+            $("#createModal").on("shown.bs.modal", function(e) {
+                let pakanOpt = [{
+                    value: 'FERMENTASI',
+                    label: 'FERMENTASI',
+                    selected: false,
+                    disabled: false,
+                }, {
+                    value: 'KONSETRAT',
+                    label: 'KONSETRAT',
+                    selected: false,
+                    disabled: false,
+                }, {
+                    value: 'COMPLETE FEED',
+                    label: 'COMPLETE FEED',
+                    selected: false,
+                    disabled: false,
+                }, {
+                    value: 'RUMPUT',
+                    label: 'RUMPUT',
+                    selected: false,
+                    disabled: false,
+                }];
+
+                let pakanElm = document.querySelector('.pakan');
+                new Choices(pakanElm, {
+                    choices: pakanOpt,
+                    removeItemButton: true,
+                    placeholder: true
+                })
+            });
+
+            function storeData() {
+                var formData = new FormData();
+                formData.append('kandang_id', $("#kandang_id").val());
+                formData.append('pakan', $("#pakan").val());
+                formData.append('limbah_id', $("#limbah_id").val());
+                formData.append('age', $("#age").val());
+                formData.append('type_id', $("#livestock_type_id").val());
+                formData.append('gender', $("#gender").val());
+                formData.append('acquired_month', $("#month").val());
+                formData.append('acquired_year', $("#year").val());
+
+                createOverlay("Proses...");
+
+                formData.append('_token', '{{ csrf_token() }}');
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('livestock.store') }}",
+                    dataType: 'json',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    success: function(data) {
+                        gOverlay.hide();
+
+                        if (data.success) {
+                            toastr.success(data.message);
+                            $("#createModal").modal("hide");
+                            $(".data-table").DataTable().ajax.reload();
+                        } else {
+                            toastr.error(data.message);
+                        }
+                    },
+                    error: function(error) {
+                        gOverlay.hide();
+                        toastr.error("Network/server error\r\n" + error);
+                    }
+                });
+            }
+
+            // function saveData(rowData) {
+            //     $("#createModal").on("shown.bs.modal", function(e) {
+            //         let pakanOpt = [{
+            //             value: 'FERMENTASI',
+            //             label: 'FERMENTASI',
+            //             selected: false,
+            //             disabled: false,
+            //         }, {
+            //             value: 'KONSETRAT',
+            //             label: 'KONSETRAT',
+            //             selected: false,
+            //             disabled: false,
+            //         }, {
+            //             value: 'COMPLETE FEED',
+            //             label: 'COMPLETE FEED',
+            //             selected: false,
+            //             disabled: false,
+            //         }, {
+            //             value: 'RUMPUT',
+            //             label: 'RUMPUT',
+            //             selected: false,
+            //             disabled: false,
+            //         }];
+
+            //         let pakanElm = document.querySelector('.pakan');
+            //         new Choices(pakanElm, {
+            //             choices: pakanOpt,
+            //             removeItemButton: true,
+            //             placeholder: true
+            //         })
+            //     });
+            //     $("#createModal").modal("show");
+            // }
+
             function editData(rowData) {
                 $("#editModal").on("shown.bs.modal", function(e) {
                     $("#id_edit").val(rowData.id);
                     $("#code_edit").val(rowData.code);
                     $("#pakan_holder_edit").val(rowData.pakan);
 
-
-                    // `
-            //     <option value="FERMENTASI">FERMENTASI</option>
-            //     <option value="KONSETRAT">KONSETRAT</option>
-            //     <option value="COMPLETE FEED">COMPLETE FEED</option>
-            // `;
                     let pakanOpt = [{
                         value: 'FERMENTASI',
                         label: 'FERMENTASI',

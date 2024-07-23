@@ -20,7 +20,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'username',
-        'password'
+        'password',
+        'role',
+        'district_id'
     ];
 
     /**
@@ -41,4 +43,8 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+
+    public function district() {
+        return $this->belongsTo(District::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\UserRole;
 use Excel;
 use App\Exports\ReportExport;
 use Illuminate\Http\Request;
@@ -10,8 +11,14 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    private $isOperator = false;
+
     public function dashboard(Request $request)
     {
+        if (auth('web')->user() && auth('web')->user()->role == UserRole::OPERATOR && isset(auth('web')->user()->district)) {
+            $this->isOperator = true;
+        }
+
         $dateStart = null;
         $dateEnd = null;
 
@@ -55,6 +62,9 @@ class DashboardController extends Controller
                         });
                 });
             })
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id', 'C.gender')
             ->orderBy('livestock_type')
             ->get();
@@ -93,6 +103,9 @@ class DashboardController extends Controller
             ')
             ->join('kandang as B', 'A.id', '=', 'B.type_id')
             ->where('level', 1)
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id')
             ->orderBy('livestock_type')
             ->get();
@@ -122,6 +135,9 @@ class DashboardController extends Controller
             })
             ->whereNotNull('sold_deal_price')
             ->where('level', 1)
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id', 'C.gender')
             ->orderBy('livestock_type')
             ->get();
@@ -174,6 +190,9 @@ class DashboardController extends Controller
                 });
             })
             ->where('level', 1)
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id', 'C.gender')
             ->orderBy('livestock_type')
             ->get();
@@ -223,6 +242,9 @@ class DashboardController extends Controller
                 });
             })
             ->where('level', 1)
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id', 'C.gender')
             ->orderBy('livestock_type')
             ->get();
@@ -272,6 +294,9 @@ class DashboardController extends Controller
                 });
             })
             ->where('level', 1)
+            ->when($this->isOperator, function ($query) {
+                $query->where('B.district_id', auth('web')->user()->district_id);
+            })
             ->groupBy('A.id', 'C.gender')
             ->orderBy('livestock_type')
             ->get();
