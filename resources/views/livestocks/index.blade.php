@@ -895,7 +895,7 @@
                         },
                         {
                             data: 'farmer',
-                            name: 'farmer'
+                            name: 'kandang.farmer.fullname'
                         },
                         {
                             data: 'code',
@@ -903,7 +903,7 @@
                         },
                         {
                             data: 'kandang',
-                            name: 'kandang'
+                            name: 'kandang.name'
                         },
                         {
                             data: 'pakan',

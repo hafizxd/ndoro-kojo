@@ -53,7 +53,7 @@ class LivestockController extends Controller
                     });
             }
                 
-            $data = $data->with(['limbah', 'livestockType']);
+            $data = $data->with(['limbah', 'livestockType', 'kandang.farmer']);
 
             return DataTables::of($data)
                 ->addIndexColumn()
