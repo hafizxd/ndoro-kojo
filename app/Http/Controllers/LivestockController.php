@@ -27,14 +27,11 @@ class LivestockController extends Controller
     public function index(Request $request)
     {
         $limbah = Limbah::all();
-        $farmers = Farmer::select('id', 'fullname')->withWhereHas('kandangs', function ($query) {
-                if (auth('web')->check() && auth('web')->user()->role == UserRole::OPERATOR){
-                    $query->where('district_id', auth('web')->user()->district_id);
-                }
-                $query->orderBy('name');
-            })
-            ->orderBy('fullname')
-            ->get();
+        $farmers = Farmer::select('id', 'fullname');
+        if (auth('web')->check() && auth('web')->user()->role == UserRole::OPERATOR) {
+            $farmers->where('district_id', auth('web')->user()->district_id);
+        }
+        $farmers = $farmers->orderBy('fullname')->get();
         $livestockTypes = LivestockType::doesntHave('livestockChildren')->orWhere('level', 2)->get();
         $livestockTypesParents = LivestockType::where('level', 1)->get();
         $provinces = Province::all();
