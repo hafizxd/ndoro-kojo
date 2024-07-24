@@ -8,13 +8,19 @@ use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
 use App\Models\Livestock;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LivestockReportDeadExport implements FromView, ShouldAutoSize
+class LivestockReportDeadExport implements FromView, ShouldAutoSize, WithTitle
 {
     protected $request;
 
     function __construct($request) {
         $this->request = $request; 
+    }
+
+    public function title(): string
+    {
+        return 'PENYEBAB KEMATIAN';
     }
 
     public function view(): View

@@ -6,15 +6,21 @@ use App\Models\LivestockType;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use App\Models\Livestock;
 use Carbon\Carbon;
 
-class LivestockReportMutationExport implements FromView, ShouldAutoSize
+class LivestockReportMutationExport implements FromView, ShouldAutoSize, WithTitle
 {
     protected $request;
 
     function __construct($request) {
         $this->request = $request; 
+    }
+
+    public function title(): string
+    {
+        return 'MUTASI TERNAK';
     }
 
     public function view(): View

@@ -150,7 +150,7 @@
                                     'village_id' => request()->query('village_id') 
                                 ]) }}" class="btn btn-primary {{ $isMutasiDisabled ? 'disabled' : '' }}" type="button">Download Mutasi</a>
 
-                                <a target="_blank" href="{{ route('livestock.report.dead.export') }}" class="btn btn-primary" type="button">Download Penyebab Kematian</a>
+                                {{-- <a target="_blank" href="{{ route('livestock.report.dead.export') }}" class="btn btn-primary" type="button">Download Penyebab Kematian</a> --}}
                             </div>
                         </div>
 

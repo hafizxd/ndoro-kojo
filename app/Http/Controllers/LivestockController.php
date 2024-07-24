@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Constants\UserRole;
-use App\Exports\LivestockReportMutationExport;
-use App\Exports\LivestockReportDeadExport;
+use App\Exports\LivestockReportMutationDeadExport;
 use App\Models\District;
 use App\Models\Farmer;
 use App\Models\Kandang;
@@ -37,6 +36,8 @@ class LivestockController extends Controller
             ->orderBy('fullname')
             ->get();
         $livestockTypes = LivestockType::doesntHave('livestockChildren')->orWhere('level', 2)->get();
+        $livestockTypesParents = LivestockType::where('level', 1)->get();
+        $provinces = Province::all();
 
         if ($request->ajax()) {
             $data = Livestock::select('*');
@@ -167,21 +168,39 @@ class LivestockController extends Controller
                 ->make(true);
         }
 
-        return view('livestocks.index', compact('limbah', 'farmers', 'livestockTypes'));
+        return view('livestocks.index', compact('limbah', 'farmers', 'livestockTypes', 'provinces', 'livestockTypesParents'));
     }
 
     public function store(Request $request) {
-        $validator = Validator::make($request->all(), [
-            'kandang_id' => 'required|exists:kandang,id',
+        if (empty($request->with_kandang) || ($request->with_kandang != '0' && $request->with_kandang != '1')) {
+            dd('with_kandang empty');
+        }
+
+        $rules = [
             'pakan' => 'nullable',
             'limbah_id' => 'required|exists:limbah,id',
-            'age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT INDUK,BIBIT PEJANTAN',
+            'age' => 'required|in:ANAK,MUDA,DEWASA,BIBIT',
             'type_id' => 'required|exists:livestock_types,id',
-            'nominal' => 'nullable',
+            'nominal' => 'required',
             'gender' => 'nullable',
             'acquired_month' => 'required',
             'acquired_year' => 'required|numeric'
-        ]);
+        ];
+
+        if ($request->with_kandang == '0') {
+            $rules['kandang_id'] = 'required|exists:kandang,id';
+        } 
+        else if ($request->with_kandang == '1') {
+            $rules = array_merge($rules, [
+                'farmer_id' => 'required|exists:farmers,id',
+                'name' => 'required',
+                'panjang' => 'required',
+                'lebar' => 'required',
+                'jenis' => 'required',
+            ]);
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
@@ -190,26 +209,61 @@ class LivestockController extends Controller
                 'payload' => [
                     'errors' => $validator->errors()
                 ]
-            ], 422);
-        }
-
-        // validate kandang
-        $isKandangExists = Kandang::has('farmer')->where('id', $request->kandang_id)->exists();
-        if (!$isKandangExists) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kandang not found',
-                'payload' => []
             ]);
         }
 
+        $kandangId = null;
 
-        $livestockReq = $request->toArray();
-        $livestockReq['code'] = $this->generateRandomCode('TRK', 'livestocks', 'code');
-        $livestockReq['acquired_status'] = "INPUT";
-        $livestockReq['acquired_month_name'] = strtoupper(Carbon::createFromFormat('m', $request->acquired_month)->locale('id')->isoFormat('MMMM'));
+        if ($request->with_kandang == '1') {
+            $kandang = Kandang::create([
+                'farmer_id' => $request->farmer_id,
+                'type_id' => $request->kandang_type_id,
+                'name' => $request->name,
+                'panjang' => $request->panjang,
+                'lebar' => $request->lebar,
+                'luas' => $request->luas,
+                'jenis' => $request->jenis,
+                'province_id' => $request->province_id,
+                'regency_id' => $request->regency_id,
+                'district_id' => $request->district_id,
+                'village_id' => $request->village_id,
+                'address' => $request->address,
+                'rt_rw' => $request->rt_rw,
+                'longitude' => $request->longitude,
+                'latitude' => $request->latitude,
+            ]);
 
-        $livestock = Livestock::create($livestockReq);
+            $kandangId = $kandang->id;
+        } 
+        else {
+            // validate kandang
+            $isKandangExists = Kandang::has('farmer')->where('id', $request->kandang_id)->exists();
+            if (!$isKandangExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kandang not found',
+                    'payload' => []
+                ]);
+            }
+
+            $kandangId = $request->kandang_id;
+        }
+
+        for ($i = 0; $i < $request->nominal; $i++) {
+            Livestock::create([
+                'kandang_id' => $kandangId,
+                'pakan' => $request->pakan,
+                'limbah_id' => $request->limbah_id,
+                'age' => $request->age,
+                'gender' => $request->gender,
+                'type_id' => $request->type_id,
+                'code' => $this->generateRandomCode('TRK', 'livestocks', 'code'),
+                'acquired_status' => 'INPUT',
+                'acquired_year' => $request->acquired_year,
+                'acquired_month' => $request->acquired_month,
+                'acquired_month_name' => strtoupper(Carbon::createFromFormat('m', $request->acquired_month)->locale('id')->isoFormat('MMMM')),
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -700,7 +754,7 @@ class LivestockController extends Controller
 
     public function reportExportMutation(Request $request) 
     {
-        return Excel::download(new LivestockReportMutationExport($request), 'livestock_mutation_report_' . time() . '.xlsx');
+        return Excel::download(new LivestockReportMutationDeadExport($request), 'livestock_mutation_report_' . time() . '.xlsx');
     }
 
     public function reportExportDead(Request $request) 

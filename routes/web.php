@@ -43,7 +43,6 @@ Route::get('/sliders/categories', [ArticleCategoryController::class, 'index'])->
 Route::get('/sliders/{slug}', [ArticleController::class, 'index'])->name('slider.index');
 Route::get('/livestocks/report', [LivestockController::class, 'report'])->name('livestock.report');
 Route::get('/livestocks/report/export/mutation', [LivestockController::class, 'reportExportMutation'])->name('livestock.report.mutation.export');
-Route::get('/livestocks/report/export/dead', [LivestockController::class, 'reportExportDead'])->name('livestock.report.dead.export');
 Route::get('/livestocks/report/detail/{urlType}/{livetockTypeId}', [LivestockController::class, 'reportDetail'])->name('livestock.report.detail');
 Route::get('/livestocks/report/detail/{urlType}/{livetockTypeId}/export', [LivestockController::class, 'reportDetailExport'])->name('livestock.report.detail.export');
 Route::get('/livestocks', [LivestockController::class, 'index'])->name('livestock.index');
