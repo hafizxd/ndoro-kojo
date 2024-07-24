@@ -5,6 +5,7 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Contracts\View\View;
 use App\Models\Livestock;
+use Carbon\Carbon;
 
 class LivestockReportExport implements FromView
 {
@@ -25,7 +26,7 @@ class LivestockReportExport implements FromView
         if (isset($this->request->daterange)) {
             $dateExp = explode(' to ', $this->request->daterange);
             $dateStart = $dateExp[0];
-            $dateEnd = $dateExp[1];
+            $dateEnd = $dateExp[1] ?? Carbon::now()->isoFormat('DD/MM/YYYY');;
         }
 
         $q = Livestock::with(['kandang.farmer', 'pakan', 'limbah']);
