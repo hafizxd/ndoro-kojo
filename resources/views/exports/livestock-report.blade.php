@@ -30,7 +30,7 @@
                 <td>
                     @php
                         if (isset($value->dead_year))
-                            $res = 'MATI';
+                            $res = 'MATI' . (isset($value->dead_reason_2) ? ' - ' . $value->dead_reason_2 : '');
                         else if (isset($value->sold_year))
                             $res = 'JUAL';
                         else 
