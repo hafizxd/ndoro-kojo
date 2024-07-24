@@ -603,7 +603,7 @@ class LivestockController extends Controller
         if (isset($request->daterange)) {
             $dateExp = explode(' to ', $request->daterange);
             $dateStart = $dateExp[0];
-            $dateEnd = $dateExp[1];
+            $dateEnd = $dateExp[1] ?? Carbon::now()->isoFormat('DD/MM/YYYY');
         }
 
         if ($request->ajax()) {
