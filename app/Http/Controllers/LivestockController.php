@@ -41,8 +41,10 @@ class LivestockController extends Controller
             
             if (auth('web')->user() && auth('web')->user()->role == UserRole::OPERATOR && isset(auth('web')->user()->district)) {
                 $data->withWhereHas('kandang', function ($query) {
-                    $query->where('district_id', auth('web')->user()->district_id)
-                        ->with(['livestockType', 'farmer', 'livestockType', 'province', 'district', 'district', 'village']);
+                    $query->withWhereHas('farmer', function ($query) {
+                        $query->where('district_id', auth('web')->user()->district_id);
+                    })
+                    ->with(['livestockType', 'farmer', 'livestockType', 'province', 'district', 'district', 'village']);
                 });
             } else {
                 $data->has('kandang.livestockType')
