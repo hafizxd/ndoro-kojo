@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ env('APP_NAME') }} - @yield('title')</title>
+    <title>{{ env('APP_NAME', 'Ndorokojo') }} - @yield('title')</title>
 
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/img/ndorokojo_logo.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/ndorokojo_logo.png') }}">

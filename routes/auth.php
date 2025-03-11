@@ -17,15 +17,15 @@ Route::middleware('web.guest')->group(function () {
 
     // Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
-                ->name('login');
+    // Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    //             ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    // Route::post('login', [AuthenticatedSessionController::class, 'store']);
 });
 
 Route::middleware('web.auth')->group(function () {
    
 
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-                ->name('logout');
+    // Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+    //             ->name('logout');
 });
