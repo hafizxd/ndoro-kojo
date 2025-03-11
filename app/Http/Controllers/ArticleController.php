@@ -102,7 +102,7 @@ class ArticleController extends Controller
             ]);
         }
 
-        $article = Article::where('type', $request->type)->findOrFail($request->id);
+        $article = Article::findOrFail($request->id);
 
         $updateData = [
             'title' => $request->title,
