@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('type')->nullable();
             $table->string('thumbnail')->nullable();
             $table->longText('content');
             $table->foreignId('author_id')->constrained('users');

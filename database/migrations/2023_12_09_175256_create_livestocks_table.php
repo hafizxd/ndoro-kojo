@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('sold_month')->nullable();
             $table->string('sold_month_name')->nullable();
             $table->string('availability')->nullable();
+            $table->integer('nominal')->default(1);
             $table->timestamps();
         });
     }
